@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "id": "bozoiD",
+  "version": "${version}",
+  "name": "BOZOID",
+  "description": "",
+  "authors": [
+    "Thonk"
+  ],
+  "contact": {
+    "sources": "https://github.com/ExcessiveAmountsOfZombies/Professions",
+    "issues": "https://github.com/ExcessiveAmountsOfZombies/Professions/issues",
+    "homepage": "https://www.curseforge.com/minecraft/mc-mods/professions-fabric",
+    "irc": "https://discord.gg/GZjtAn3F6W"
+  },
+  "license": "LGPL-3.0",
+  "icon": "assets/professions/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.epherical.bozo.BozoFabric"
+    ]
+  },
+  "mixins": [
+    "bozoiD.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.13.3",
+    "fabric": "*",
+    "minecraft": "1.18.2"
+  },
+  "custom": {
+    "waila:plugins": {
+      "id": "professions:prof_waila",
+      "initializer": "com.epherical.professions.integration.wthit.ProfWailaPlugin"
+    }
+  }
+}
