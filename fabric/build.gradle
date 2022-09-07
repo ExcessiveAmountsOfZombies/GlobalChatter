@@ -1,7 +1,7 @@
 import net.fabricmc.loom.task.RemapJarTask
 
 plugins {
-    id 'fabric-loom' version '0.11-SNAPSHOT'
+    id 'fabric-loom' version '1.0-SNAPSHOT'
     id 'com.github.johnrengelman.shadow' version '7.0.0'
 }
 
@@ -54,7 +54,7 @@ processResources {
 tasks.processResources.dependsOn(rootProject.tasks.processResources)
 
 loom {
-    //accessWidenerPath = file("src/main/resources/bozoiD.accesswidener")
+    accessWidenerPath = file("src/main/resources/global_chatter.accesswidener")
 
     runs {
         datagen {

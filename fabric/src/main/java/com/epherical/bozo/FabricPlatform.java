@@ -23,9 +23,9 @@ public class FabricPlatform extends CommonPlatform<FabricPlatform> {
         return FabricLoader.getInstance().getEnvironmentType() == EnvType.SERVER;
     }
 
-    /*@Override
+    @Override
     public Path getRootConfigPath() {
-        return FabricLoader.getInstance().getConfigDir().resolve("BOZO_ID");
-    }*/
+        return FabricLoader.getInstance().getConfigDir().resolve("GlobalChatter");
+    }
 
 }

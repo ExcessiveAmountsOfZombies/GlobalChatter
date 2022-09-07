@@ -12,7 +12,7 @@ pluginManagement {
     }
 }
 
-rootProject.name = 'FabForgeTemplate'
+rootProject.name = 'GlobalChatter'
 
 include 'forge'
 include 'fabric'
