@@ -1,6 +1,9 @@
 package com.epherical.bozo.chat;
 
 import com.epherical.bozo.ServerPacketListener;
+import com.epherical.bozo.event.Events;
+import com.epherical.bozo.netty.ModifiedDecoder;
+import com.epherical.bozo.netty.ModifiedEncoder;
 import com.mojang.logging.LogUtils;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
@@ -15,8 +18,6 @@ import net.minecraft.CrashReport;
 import net.minecraft.ReportedException;
 import net.minecraft.network.Connection;
 import net.minecraft.network.ConnectionProtocol;
-import net.minecraft.network.PacketDecoder;
-import net.minecraft.network.PacketEncoder;
 import net.minecraft.network.PacketSendListener;
 import net.minecraft.network.Varint21FrameDecoder;
 import net.minecraft.network.Varint21LengthFieldPrepender;
@@ -46,22 +47,24 @@ public class ChatHost {
                     protected void initChannel(@NotNull Channel ch) {
                         try {
                             ch.config().setOption(ChannelOption.TCP_NODELAY, true);
+                            ch.config().setOption(ChannelOption.SO_KEEPALIVE, true);
                         } catch (ChannelException ignored) {
                         }
                         ch.pipeline()
+                                .addLast()
                                 .addLast("splitter", (new Varint21FrameDecoder()))
-                                .addLast("decoder", (new PacketDecoder(PacketFlow.SERVERBOUND)))
+                                .addLast("decoder", (new ModifiedDecoder(PacketFlow.SERVERBOUND)))
                                 .addLast("prepender", (new Varint21LengthFieldPrepender()))
-                                .addLast("encoder", (new PacketEncoder(PacketFlow.CLIENTBOUND)));
-                        Connection connection = new Connection(PacketFlow.SERVERBOUND);
+                                .addLast("encoder", (new ModifiedEncoder(PacketFlow.CLIENTBOUND)));
+                        ChatConnection connection = new ChatConnection(PacketFlow.SERVERBOUND);
                         connections.add(connection);
-                        connection.setListener(new ServerPacketListener(connection));
+                        connection.setListener(new ServerPacketListener(connection, server));
                         new Timer().schedule(new TimerTask() {
                             @Override
                             public void run() {
                                 connection.setProtocol(ConnectionProtocol.PLAY);
                             }
-                        }, 5L);
+                        }, 1L);
                         ch.pipeline().addLast("packet_handler", connection);
                     }
                 })
@@ -76,7 +79,7 @@ public class ChatHost {
     private static void registerListeners(MinecraftServer mainServer) {
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             synchronized (connections) {
-                for (Iterator<Connection> iterator = connections.iterator(); iterator.hasNext(); ) {
+                for (Iterator<ChatConnection> iterator = connections.iterator(); iterator.hasNext(); ) {
                     Connection connection = iterator.next();
                     if (connection.isConnected()) {
                         try {
@@ -101,14 +104,29 @@ public class ChatHost {
         });
 
         ServerMessageEvents.CHAT_MESSAGE.register((message, sender, params) -> {
-            for (Connection connection : connections) {
-                connection.send(new ClientboundPlayerChatPacket(message, params.toNetwork(mainServer.registryAccess())));
+            byte[] bytes = message.signedBody().hash().asBytes();
+            for (ChatConnection connection : connections) {
+                //connection.send(new ClientboundPlayerChatHeaderPacket(message.signedHeader(), message.headerSignature(), bytes));
+                new Timer().schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        connection.send(new ClientboundPlayerChatPacket(message, params.toNetwork(mainServer.registryAccess())));
+                    }
+                }, 1L);
             }
         });
 
         ServerMessageEvents.GAME_MESSAGE.register((server1, message, overlay) -> {
-            for (Connection connection : connections) {
+            for (ChatConnection connection : connections) {
                 connection.send(new ClientboundSystemChatPacket(message, overlay));
+            }
+        });
+
+        Events.
+
+        Events.HEADER_EVENT.register((bytes, header, signature) -> {
+            for (ChatConnection connection : connections) {
+
             }
         });
     }

@@ -4,6 +4,7 @@ import net.minecraft.network.Connection;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.*;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
 
 public class ClientChatPacketListener implements ClientGamePacketListener {
 
@@ -21,13 +22,16 @@ public class ClientChatPacketListener implements ClientGamePacketListener {
     }
 
     @Override
-    public void handlePlayerChat(ClientboundPlayerChatPacket clientboundPlayerChatPacket) {
-        server.getPlayerList().broadcastAll(clientboundPlayerChatPacket);
+    public void handlePlayerChat(ClientboundPlayerChatPacket packet) {
+        for (ServerPlayer player : server.getPlayerList().getPlayers()) {
+            player.connection.addPendingMessage(packet.message());
+            player.connection.send(packet);
+        }
     }
 
     @Override
     public void handlePlayerChatHeader(ClientboundPlayerChatHeaderPacket clientboundPlayerChatHeaderPacket) {
-        System.out.println(clientboundPlayerChatHeaderPacket.header());
+        server.getPlayerList().broadcastAll(clientboundPlayerChatHeaderPacket);
     }
 
     @Override
@@ -42,7 +46,7 @@ public class ClientChatPacketListener implements ClientGamePacketListener {
 
     @Override
     public void handleDeleteChat(ClientboundDeleteChatPacket clientboundDeleteChatPacket) {
-        System.out.println(clientboundDeleteChatPacket.messageSignature());
+        server.getPlayerList().broadcastAll(clientboundDeleteChatPacket);
     }
 
     @Override
@@ -58,7 +62,7 @@ public class ClientChatPacketListener implements ClientGamePacketListener {
 
     @Override
     public void setActionBarText(ClientboundSetActionBarTextPacket packet) {
-        System.out.println(packet.getText());
+        server.getPlayerList().broadcastAll(packet);
     }
 
     @Override

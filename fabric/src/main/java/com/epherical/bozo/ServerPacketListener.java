@@ -1,7 +1,20 @@
 package com.epherical.bozo;
 
+import com.epherical.bozo.mixin.ClientboundPlayerInfoAccessor;
+import com.epherical.bozo.packets.HostBoundPlayerChatPacket;
+import com.epherical.bozo.packets.HostBoundSystemChatPacket;
+import com.epherical.bozo.packets.HostboundPlayerChatHeaderPacket;
+import com.epherical.bozo.packets.HostboundPlayerInfoPacket;
 import net.minecraft.network.Connection;
+import net.minecraft.network.chat.ChatMessageContent;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.LastSeenMessages;
+import net.minecraft.network.chat.PlayerChatMessage;
+import net.minecraft.network.chat.SignedMessageChain;
+import net.minecraft.network.protocol.game.ClientboundPlayerChatHeaderPacket;
+import net.minecraft.network.protocol.game.ClientboundPlayerChatPacket;
+import net.minecraft.network.protocol.game.ClientboundPlayerInfoPacket;
+import net.minecraft.network.protocol.game.ClientboundSystemChatPacket;
 import net.minecraft.network.protocol.game.ServerGamePacketListener;
 import net.minecraft.network.protocol.game.ServerboundAcceptTeleportationPacket;
 import net.minecraft.network.protocol.game.ServerboundBlockEntityTagQuery;
@@ -51,13 +64,51 @@ import net.minecraft.network.protocol.game.ServerboundSwingPacket;
 import net.minecraft.network.protocol.game.ServerboundTeleportToEntityPacket;
 import net.minecraft.network.protocol.game.ServerboundUseItemOnPacket;
 import net.minecraft.network.protocol.game.ServerboundUseItemPacket;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
 
 public class ServerPacketListener implements ServerGamePacketListener {
 
     private final Connection connection;
+    private final MinecraftServer server;
 
-    public ServerPacketListener(Connection connection) {
+    public ServerPacketListener(Connection connection, MinecraftServer server) {
         this.connection = connection;
+        this.server = server;
+    }
+
+    public void handleHostPlayerInfo(HostboundPlayerInfoPacket packet) {
+        ClientboundPlayerInfoPacket infoPacket = new ClientboundPlayerInfoPacket(packet.getAction(), (ServerPlayer) null);
+        ClientboundPlayerInfoAccessor accessor = (ClientboundPlayerInfoAccessor) infoPacket;
+        accessor.setEntries(packet.getEntries());
+        server.getPlayerList().broadcastAll(infoPacket);
+    }
+
+    public void handleHostHeader(HostboundPlayerChatHeaderPacket packet) {
+        System.out.println(packet.getHeader().previousSignature());
+        System.out.println(packet.getHeader().sender());
+        ClientboundPlayerChatHeaderPacket headerPacket = new ClientboundPlayerChatHeaderPacket(packet.getHeader(), packet.getHeaderSignature(), packet.getBodyDigest());
+        server.getPlayerList().broadcastAll(headerPacket);
+    }
+
+    public void handleHostChat(HostBoundPlayerChatPacket packet) {
+        ClientboundPlayerChatPacket chatPacket = new ClientboundPlayerChatPacket(packet.getPlayerChatMessage(), packet.getBoundNetwork());
+        SignedMessageChain.Link link = new SignedMessageChain.Link(packet.getPlayerChatMessage().headerSignature());
+        LastSeenMessages lastSeenMessages = packet.getPlayerChatMessage().signedBody().lastSeen();
+        ChatMessageContent chatMessageContent = packet.getPlayerChatMessage().signedContent();
+        for (ServerPlayer player : server.getPlayerList().getPlayers()) {
+            // todo; more printout mixins, one on the signer here
+            // and wone where it gets verified
+            System.out.println(packet.getPlayerChatMessage().signer());
+            PlayerChatMessage unpack = player.connection.signedMessageDecoder().unpack(link, packet.getPlayerChatMessage().signer(), chatMessageContent, lastSeenMessages);
+            player.connection.addPendingMessage(unpack);
+            player.connection.send(chatPacket);
+        }
+    }
+
+    public void handleHostSystem(HostBoundSystemChatPacket packet) {
+        ClientboundSystemChatPacket chatPacket = new ClientboundSystemChatPacket(packet.getComponent(), packet.isOverlay());
+        server.getPlayerList().broadcastAll(chatPacket);
     }
 
     @Override

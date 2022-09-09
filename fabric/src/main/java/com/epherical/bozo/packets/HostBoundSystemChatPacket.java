@@ -1,5 +1,6 @@
 package com.epherical.bozo.packets;
 
+import com.epherical.bozo.ServerPacketListener;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
@@ -20,6 +21,13 @@ public class HostBoundSystemChatPacket implements Packet<ServerGamePacketListene
         this.overlay = bl;
     }
 
+    public Component getComponent() {
+        return component;
+    }
+
+    public boolean isOverlay() {
+        return overlay;
+    }
 
     @Override
     public void write(FriendlyByteBuf buffer) {
@@ -29,7 +37,8 @@ public class HostBoundSystemChatPacket implements Packet<ServerGamePacketListene
 
     @Override
     public void handle(ServerGamePacketListener handler) {
-
-
+        if (handler instanceof ServerPacketListener listener) {
+            listener.handleHostSystem(this);
+        }
     }
 }

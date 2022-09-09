@@ -1,5 +1,6 @@
 package com.epherical.bozo.packets;
 
+import com.epherical.bozo.ServerPacketListener;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.ChatType;
@@ -32,7 +33,9 @@ public class HostBoundPlayerChatPacket implements Packet<ServerGamePacketListene
 
     @Override
     public void handle(ServerGamePacketListener handler) {
-
+        if (handler instanceof ServerPacketListener listener) {
+            listener.handleHostChat(this);
+        }
     }
 
     public Optional<ChatType.Bound> resolveChatType(RegistryAccess registryAccess) {
