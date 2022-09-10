@@ -6,9 +6,9 @@
   "mixins": [
     "ClientboundPlayerInfoAccessor",
     "ConnectionAccessor",
-    "HeaderPacketMixin",
-    "VerifyMixin",
-    "infopacket.PlayerListMixin"
+    "HeaderPacketMixin"
+    "infopacket.PlayerListMixin",
+    "infopacket.ServerPlayerGameModeMixin"
   ],
   "client": [
   ],

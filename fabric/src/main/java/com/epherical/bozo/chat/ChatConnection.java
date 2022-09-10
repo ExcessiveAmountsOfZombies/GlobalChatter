@@ -1,6 +1,7 @@
 package com.epherical.bozo.chat;
 
 import com.epherical.bozo.ChatProtocol;
+import com.epherical.bozo.ServerPacketListener;
 import com.epherical.bozo.mixin.ConnectionAccessor;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
@@ -8,6 +9,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.AttributeKey;
 import net.minecraft.network.Connection;
 import net.minecraft.network.ConnectionProtocol;
+import net.minecraft.network.PacketListener;
 import net.minecraft.network.PacketSendListener;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.PacketFlow;
@@ -24,6 +26,12 @@ public class ChatConnection extends Connection {
 
     public ChatConnection(PacketFlow packetFlow) {
         super(packetFlow);
+    }
+
+    @Override
+    public void exceptionCaught(ChannelHandlerContext channelHandlerContext, Throwable throwable) {
+        super.exceptionCaught(channelHandlerContext, throwable);
+        System.out.println(throwable);
     }
 
     @Override
@@ -74,5 +82,9 @@ public class ChatConnection extends Connection {
         }
 
         channelFuture.addListener(ChannelFutureListener.FIRE_EXCEPTION_ON_FAILURE);
+    }
+
+    public ServerPacketListener getCustomPacketListener() {
+        return (ServerPacketListener) super.getPacketListener();
     }
 }

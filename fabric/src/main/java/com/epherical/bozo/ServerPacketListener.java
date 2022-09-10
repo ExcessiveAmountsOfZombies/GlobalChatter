@@ -5,12 +5,14 @@ import com.epherical.bozo.packets.HostBoundPlayerChatPacket;
 import com.epherical.bozo.packets.HostBoundSystemChatPacket;
 import com.epherical.bozo.packets.HostboundPlayerChatHeaderPacket;
 import com.epherical.bozo.packets.HostboundPlayerInfoPacket;
+import com.mojang.authlib.GameProfile;
 import net.minecraft.network.Connection;
 import net.minecraft.network.chat.ChatMessageContent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.LastSeenMessages;
 import net.minecraft.network.chat.PlayerChatMessage;
 import net.minecraft.network.chat.SignedMessageChain;
+import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundPlayerChatHeaderPacket;
 import net.minecraft.network.protocol.game.ClientboundPlayerChatPacket;
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoPacket;
@@ -67,10 +69,16 @@ import net.minecraft.network.protocol.game.ServerboundUseItemPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 public class ServerPacketListener implements ServerGamePacketListener {
 
     private final Connection connection;
     private final MinecraftServer server;
+
+    private Map<GameProfile, ClientboundPlayerInfoPacket.PlayerUpdate> playersFromOtherServers = new HashMap<>();
 
     public ServerPacketListener(Connection connection, MinecraftServer server) {
         this.connection = connection;
@@ -78,30 +86,38 @@ public class ServerPacketListener implements ServerGamePacketListener {
     }
 
     public void handleHostPlayerInfo(HostboundPlayerInfoPacket packet) {
-        ClientboundPlayerInfoPacket infoPacket = new ClientboundPlayerInfoPacket(packet.getAction(), (ServerPlayer) null);
+        ClientboundPlayerInfoPacket infoPacket = new ClientboundPlayerInfoPacket(packet.getAction(), Collections.emptyList());
         ClientboundPlayerInfoAccessor accessor = (ClientboundPlayerInfoAccessor) infoPacket;
         accessor.setEntries(packet.getEntries());
-        server.getPlayerList().broadcastAll(infoPacket);
+        // TODO: we need a packet solution, this only works in one direction.
+        if (packet.getAction() != ClientboundPlayerInfoPacket.Action.REMOVE_PLAYER) {
+            for (ClientboundPlayerInfoPacket.PlayerUpdate entry : packet.getEntries()) {
+                GameProfile profile = entry.getProfile();
+                if (profile.getName() != null) {
+                    playersFromOtherServers.put(entry.getProfile(), entry);
+                }
+            }
+        } else {
+            for (ClientboundPlayerInfoPacket.PlayerUpdate entry : packet.getEntries()) {
+                playersFromOtherServers.remove(entry.getProfile());
+            }
+        }
+
+        server.getPlayerList().broadcastAll((Packet<?>) accessor);
     }
 
     public void handleHostHeader(HostboundPlayerChatHeaderPacket packet) {
-        System.out.println(packet.getHeader().previousSignature());
-        System.out.println(packet.getHeader().sender());
+        System.out.println("Previous Signature: " + packet.getHeader().previousSignature());
+        System.out.println("Current Signature?: " + packet.getHeaderSignature());
+        System.out.println("Sender: " + packet.getHeader().sender());
         ClientboundPlayerChatHeaderPacket headerPacket = new ClientboundPlayerChatHeaderPacket(packet.getHeader(), packet.getHeaderSignature(), packet.getBodyDigest());
         server.getPlayerList().broadcastAll(headerPacket);
     }
 
     public void handleHostChat(HostBoundPlayerChatPacket packet) {
         ClientboundPlayerChatPacket chatPacket = new ClientboundPlayerChatPacket(packet.getPlayerChatMessage(), packet.getBoundNetwork());
-        SignedMessageChain.Link link = new SignedMessageChain.Link(packet.getPlayerChatMessage().headerSignature());
-        LastSeenMessages lastSeenMessages = packet.getPlayerChatMessage().signedBody().lastSeen();
-        ChatMessageContent chatMessageContent = packet.getPlayerChatMessage().signedContent();
         for (ServerPlayer player : server.getPlayerList().getPlayers()) {
-            // todo; more printout mixins, one on the signer here
-            // and wone where it gets verified
-            System.out.println(packet.getPlayerChatMessage().signer());
-            PlayerChatMessage unpack = player.connection.signedMessageDecoder().unpack(link, packet.getPlayerChatMessage().signer(), chatMessageContent, lastSeenMessages);
-            player.connection.addPendingMessage(unpack);
+            player.connection.addPendingMessage(packet.getPlayerChatMessage());
             player.connection.send(chatPacket);
         }
     }
@@ -359,5 +375,9 @@ public class ServerPacketListener implements ServerGamePacketListener {
     @Override
     public void handleLockDifficulty(ServerboundLockDifficultyPacket packet) {
 
+    }
+
+    public Map<GameProfile, ClientboundPlayerInfoPacket.PlayerUpdate> getPlayersFromOtherServers() {
+        return playersFromOtherServers;
     }
 }

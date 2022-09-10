@@ -5,6 +5,7 @@ import net.fabricmc.fabric.api.event.EventFactory;
 import net.minecraft.network.chat.MessageSignature;
 import net.minecraft.network.chat.SignedMessageHeader;
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoPacket;
+import net.minecraft.server.level.ServerPlayer;
 
 public class Events {
 
@@ -20,6 +21,12 @@ public class Events {
         }
     });
 
+    public static final Event<PlayerJoined> PLAYER_JOINED = EventFactory.createArrayBacked(PlayerJoined.class, calls -> (packet, player) -> {
+        for (PlayerJoined call : calls) {
+            call.onPlayerJoin(packet, player);
+        }
+    });
+
 
     @FunctionalInterface
     public interface HeaderEvent {
@@ -29,5 +36,10 @@ public class Events {
     @FunctionalInterface
     public interface PlayerInfo {
         void onPlayerInfo(ClientboundPlayerInfoPacket packet);
+    }
+
+    @FunctionalInterface
+    public interface PlayerJoined {
+        void onPlayerJoin(ClientboundPlayerInfoPacket packet, ServerPlayer player);
     }
 }

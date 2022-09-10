@@ -7,6 +7,7 @@ import com.epherical.bozo.netty.ModifiedEncoder;
 import com.epherical.bozo.packets.HostBoundPlayerChatPacket;
 import com.epherical.bozo.packets.HostBoundSystemChatPacket;
 import com.epherical.bozo.packets.HostboundPlayerChatHeaderPacket;
+import com.epherical.bozo.packets.HostboundPlayerInfoPacket;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelException;
@@ -76,6 +77,12 @@ public class ChatListener {
                 }
             }, 1L);
         });
+
+        Events.PLAYER_INFO_EVENT.register(packet -> {
+            HostboundPlayerInfoPacket hostboundPlayerInfoPacket = new HostboundPlayerInfoPacket(packet.getAction(), packet.getEntries());
+            connection.send(hostboundPlayerInfoPacket);
+        });
+
         Events.HEADER_EVENT.register((bytes, header, signature) -> {
 
         });

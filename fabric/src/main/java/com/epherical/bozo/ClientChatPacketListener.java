@@ -183,7 +183,9 @@ public class ClientChatPacketListener implements ClientGamePacketListener {
     public void handlePlayerAbilities(ClientboundPlayerAbilitiesPacket packet) {}
 
     @Override
-    public void handlePlayerInfo(ClientboundPlayerInfoPacket packet) {}
+    public void handlePlayerInfo(ClientboundPlayerInfoPacket packet) {
+        server.getPlayerList().broadcastAll(packet);
+    }
 
     @Override
     public void handleRemoveEntities(ClientboundRemoveEntitiesPacket clientboundRemoveEntitiesPacket) {}
