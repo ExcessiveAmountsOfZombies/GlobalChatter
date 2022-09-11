@@ -67,15 +67,20 @@ public class ChatListener {
         ServerMessageEvents.GAME_MESSAGE.register((server1, message, overlay) -> {
             connection.send(new HostBoundSystemChatPacket(message, overlay));
         });
-        ServerMessageEvents.CHAT_MESSAGE.register((message, sender, params) -> {
+
+        Events.BROADCAST_CHAT_EVENT.register((message, network) -> {
             byte[] bytes = message.signedBody().hash().asBytes();
             connection.send(new HostboundPlayerChatHeaderPacket(message.signedHeader(), message.headerSignature(), bytes));
             new Timer().schedule(new TimerTask() {
                 @Override
                 public void run() {
-                    connection.send(new HostBoundPlayerChatPacket(message, params.toNetwork(server.registryAccess())));
+                    connection.send(new HostBoundPlayerChatPacket(message, network));
                 }
             }, 1L);
+        });
+
+        ServerMessageEvents.CHAT_MESSAGE.register((message, sender, params) -> {
+
         });
 
         Events.PLAYER_INFO_EVENT.register(packet -> {

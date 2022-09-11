@@ -2,7 +2,9 @@ package com.epherical.bozo.event;
 
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
+import net.minecraft.network.chat.ChatType;
 import net.minecraft.network.chat.MessageSignature;
+import net.minecraft.network.chat.PlayerChatMessage;
 import net.minecraft.network.chat.SignedMessageHeader;
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoPacket;
 import net.minecraft.server.level.ServerPlayer;
@@ -27,6 +29,12 @@ public class Events {
         }
     });
 
+    public static final Event<BroadcastChat> BROADCAST_CHAT_EVENT = EventFactory.createArrayBacked(BroadcastChat.class, calls -> (message, network) -> {
+        for (BroadcastChat call : calls) {
+            call.onBroadcast(message, network);
+        }
+    });
+
 
     @FunctionalInterface
     public interface HeaderEvent {
@@ -41,5 +49,10 @@ public class Events {
     @FunctionalInterface
     public interface PlayerJoined {
         void onPlayerJoin(ClientboundPlayerInfoPacket packet, ServerPlayer player);
+    }
+
+    @FunctionalInterface
+    public interface BroadcastChat {
+        void onBroadcast(PlayerChatMessage message, ChatType.BoundNetwork network);
     }
 }

@@ -64,6 +64,7 @@ public class ChatHost {
                                 .addLast("prepender", (new Varint21LengthFieldPrepender()))
                                 .addLast("encoder", (new ModifiedEncoder(PacketFlow.CLIENTBOUND)));
                         connection = new ChatConnection(PacketFlow.SERVERBOUND);
+                        // todo; fix this lol
                         connections.add(connection);
                         connection.setListener(new ServerPacketListener(connection, server));
                         new Timer().schedule(new TimerTask() {
@@ -110,14 +111,14 @@ public class ChatHost {
             }
         });
 
-        ServerMessageEvents.CHAT_MESSAGE.register((message, sender, params) -> {
+        Events.BROADCAST_CHAT_EVENT.register((message, network) -> {
             byte[] bytes = message.signedBody().hash().asBytes();
             for (ChatConnection connection : connections) {
                 //connection.send(new ClientboundPlayerChatHeaderPacket(message.signedHeader(), message.headerSignature(), bytes));
                 new Timer().schedule(new TimerTask() {
                     @Override
                     public void run() {
-                        connection.send(new ClientboundPlayerChatPacket(message, params.toNetwork(mainServer.registryAccess())));
+                        connection.send(new ClientboundPlayerChatPacket(message, network));
                     }
                 }, 1L);
             }
@@ -144,7 +145,7 @@ public class ChatHost {
 
         Events.HEADER_EVENT.register((bytes, header, signature) -> {
             for (ChatConnection connection : connections) {
-                connection.send(new ClientboundPlayerChatHeaderPacket(header, signature, bytes));
+                //connection.send(new ClientboundPlayerChatHeaderPacket(header, signature, bytes));
             }
         });
     }
