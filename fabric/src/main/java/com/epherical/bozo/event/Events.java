@@ -9,10 +9,13 @@ import net.minecraft.network.chat.SignedMessageHeader;
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoPacket;
 import net.minecraft.server.level.ServerPlayer;
 
+/**
+ * A collection of poorly named events.
+ */
 public class Events {
 
-    public static final Event<HeaderEvent> HEADER_EVENT = EventFactory.createArrayBacked(HeaderEvent.class, calls -> (bytes, header, signature) -> {
-        for (HeaderEvent call : calls) {
+    public static final Event<ChatHeader> CHAT_HEADER_EVENT = EventFactory.createArrayBacked(ChatHeader.class, calls -> (bytes, header, signature) -> {
+        for (ChatHeader call : calls) {
             call.onBroadcastHeader(bytes, header, signature);
         }
     });
@@ -37,7 +40,7 @@ public class Events {
 
 
     @FunctionalInterface
-    public interface HeaderEvent {
+    public interface ChatHeader {
         void onBroadcastHeader(byte[] bytes, SignedMessageHeader header, MessageSignature signature);
     }
 

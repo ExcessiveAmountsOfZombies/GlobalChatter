@@ -1,6 +1,6 @@
 package com.epherical.bozo.packets;
 
-import com.epherical.bozo.ServerPacketListener;
+import com.epherical.bozo.packets.handler.HostPacketHandler;
 import com.google.common.base.MoreObjects;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.Packet;
@@ -36,7 +36,7 @@ public class HostboundPlayerInfoPacket implements Packet<ServerGamePacketListene
 
     @Override
     public void handle(ServerGamePacketListener handler) {
-        if (handler instanceof ServerPacketListener listener) {
+        if (handler instanceof HostPacketHandler listener) {
             listener.handleHostPlayerInfo(this);
         }
     }

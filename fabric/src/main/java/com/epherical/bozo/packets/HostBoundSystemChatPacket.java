@@ -1,6 +1,6 @@
 package com.epherical.bozo.packets;
 
-import com.epherical.bozo.ServerPacketListener;
+import com.epherical.bozo.packets.handler.HostPacketHandler;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
@@ -37,7 +37,7 @@ public class HostBoundSystemChatPacket implements Packet<ServerGamePacketListene
 
     @Override
     public void handle(ServerGamePacketListener handler) {
-        if (handler instanceof ServerPacketListener listener) {
+        if (handler instanceof HostPacketHandler listener) {
             listener.handleHostSystem(this);
         }
     }

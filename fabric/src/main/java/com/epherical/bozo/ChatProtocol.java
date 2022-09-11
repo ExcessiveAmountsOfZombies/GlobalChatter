@@ -4,6 +4,8 @@ import com.epherical.bozo.packets.HostBoundPlayerChatPacket;
 import com.epherical.bozo.packets.HostBoundSystemChatPacket;
 import com.epherical.bozo.packets.HostboundPlayerChatHeaderPacket;
 import com.epherical.bozo.packets.HostboundPlayerInfoPacket;
+import com.epherical.bozo.packets.handler.HostPacketHandler;
+import com.epherical.bozo.packets.handler.ListenerPacketHandler;
 import com.google.common.collect.Maps;
 import net.minecraft.network.ConnectionProtocol;
 import net.minecraft.network.ConnectionProtocol.PacketSet;
@@ -34,6 +36,13 @@ public class ChatProtocol {
 
     private static int increment = 0;
 
+    /**
+     * Clientbound packets are handled in {@link ListenerPacketHandler} these listeners will just send to players on
+     * the server
+     * <br>
+     * Hostbound packets are handled in {@link HostPacketHandler} Host listeners need to send to the players on their
+     * server as well as to listeners
+     */
     public static final ChatProtocol CHAT_PROTOCOL;
 
     private final int id;
@@ -67,9 +76,11 @@ public class ChatProtocol {
         }
     }
 
+
     static {
         CHAT_PROTOCOL = new ChatProtocol(new Builder()
                 .addFlow(PacketFlow.CLIENTBOUND, new PacketSet<ClientGamePacketListener>()
+                        // Handled in ListenerPacketHandler
                         .addPacket(ClientboundCustomChatCompletionsPacket.class, ClientboundCustomChatCompletionsPacket::new)
                         .addPacket(ClientboundSystemChatPacket.class, ClientboundSystemChatPacket::new)
                         .addPacket(ClientboundPlayerChatPacket.class, ClientboundPlayerChatPacket::new)
@@ -84,7 +95,9 @@ public class ChatProtocol {
                         .addPacket(ClientboundPlayerInfoPacket.class, ClientboundPlayerInfoPacket::new)
                         .addPacket(ClientboundServerDataPacket.class, ClientboundServerDataPacket::new))
                 .addFlow(PacketFlow.SERVERBOUND, new PacketSet<ServerGamePacketListener>()
+                        // Handled in HostPacketHandler
                         // really could call it HOSTBOUND, they're both servers
+                        // HostBound packets are just re-implementations of Clientbound vanilla packets for sending information back to the host server.
                         .addPacket(HostBoundSystemChatPacket.class, HostBoundSystemChatPacket::new)
                         .addPacket(HostBoundPlayerChatPacket.class, HostBoundPlayerChatPacket::new)
                         .addPacket(HostboundPlayerChatHeaderPacket.class, HostboundPlayerChatHeaderPacket::new)

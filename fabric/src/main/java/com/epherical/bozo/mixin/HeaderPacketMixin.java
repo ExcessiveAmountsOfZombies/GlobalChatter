@@ -24,7 +24,7 @@ public class HeaderPacketMixin {
 
     @Inject(method = "broadcastChatMessage(Lnet/minecraft/network/chat/PlayerChatMessage;Ljava/util/function/Predicate;Lnet/minecraft/server/level/ServerPlayer;Lnet/minecraft/network/chat/ChatSender;Lnet/minecraft/network/chat/ChatType$Bound;)V", at = @At("HEAD"))
     public void globalchatter$broadcastMessageEvent(PlayerChatMessage playerChatMessage, Predicate<ServerPlayer> predicate, ServerPlayer serverPlayer, ChatSender chatSender, ChatType.Bound bound, CallbackInfo ci) {
-        Events.HEADER_EVENT.invoker().onBroadcastHeader(playerChatMessage.signedBody().hash().asBytes(),
+        Events.CHAT_HEADER_EVENT.invoker().onBroadcastHeader(playerChatMessage.signedBody().hash().asBytes(),
                 playerChatMessage.signedHeader(), playerChatMessage.headerSignature());
     }
 

@@ -1,4 +1,4 @@
-package com.epherical.bozo;
+package com.epherical.bozo.packets.handler;
 
 import net.minecraft.network.Connection;
 import net.minecraft.network.chat.Component;
@@ -6,12 +6,12 @@ import net.minecraft.network.protocol.game.*;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 
-public class ClientChatPacketListener implements ClientGamePacketListener {
+public class ListenerPacketHandler implements ClientGamePacketListener {
 
     private final Connection connection;
     private final MinecraftServer server;
 
-    public ClientChatPacketListener(Connection connection, MinecraftServer server) {
+    public ListenerPacketHandler(Connection connection, MinecraftServer server) {
         this.connection = connection;
         this.server = server;
     }
@@ -36,12 +36,12 @@ public class ClientChatPacketListener implements ClientGamePacketListener {
 
     @Override
     public void handleChatPreview(ClientboundChatPreviewPacket clientboundChatPreviewPacket) {
-        System.out.println(clientboundChatPreviewPacket.preview());
+        //System.out.println(clientboundChatPreviewPacket.preview());
     }
 
     @Override
     public void handleSetDisplayChatPreview(ClientboundSetDisplayChatPreviewPacket clientboundSetDisplayChatPreviewPacket) {
-        System.out.println(clientboundSetDisplayChatPreviewPacket.enabled());
+        //System.out.println(clientboundSetDisplayChatPreviewPacket.enabled());
     }
 
     @Override
@@ -56,8 +56,7 @@ public class ClientChatPacketListener implements ClientGamePacketListener {
 
     @Override
     public void handleDisconnect(ClientboundDisconnectPacket packet) {
-        System.out.println("DISCONNECT CALLED, PLEASE NO! BAD BAD!");
-
+        //System.out.println("DISCONNECT CALLED, PLEASE NO! BAD BAD!");
     }
 
     @Override
@@ -72,12 +71,12 @@ public class ClientChatPacketListener implements ClientGamePacketListener {
 
     @Override
     public void handleServerData(ClientboundServerDataPacket clientboundServerDataPacket) {
-        System.out.println(clientboundServerDataPacket.enforcesSecureChat());
+        //System.out.println(clientboundServerDataPacket.enforcesSecureChat());
     }
 
     @Override
     public void handleCustomChatCompletions(ClientboundCustomChatCompletionsPacket clientboundCustomChatCompletionsPacket) {
-        System.out.println(clientboundCustomChatCompletionsPacket.action());
+        //System.out.println(clientboundCustomChatCompletionsPacket.action());
     }
 
     @Override

@@ -1,6 +1,6 @@
 package com.epherical.bozo.chat;
 
-import com.epherical.bozo.ServerPacketListener;
+import com.epherical.bozo.packets.handler.HostPacketHandler;
 import com.epherical.bozo.event.Events;
 import com.epherical.bozo.mixin.ClientboundPlayerInfoAccessor;
 import com.epherical.bozo.netty.ModifiedDecoder;
@@ -26,7 +26,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.network.protocol.game.ClientboundDisconnectPacket;
-import net.minecraft.network.protocol.game.ClientboundPlayerChatHeaderPacket;
 import net.minecraft.network.protocol.game.ClientboundPlayerChatPacket;
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoPacket;
 import net.minecraft.network.protocol.game.ClientboundSystemChatPacket;
@@ -34,6 +33,7 @@ import net.minecraft.server.MinecraftServer;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Timer;
@@ -43,8 +43,6 @@ import static com.epherical.bozo.BozoFabric.*;
 
 public class ChatHost {
     private static final Logger LOGGER = LogUtils.getLogger();
-
-    private static ChatConnection connection;
 
     public static void init(MinecraftServer server) {
         ChannelFuture future = new ServerBootstrap()
@@ -63,10 +61,9 @@ public class ChatHost {
                                 .addLast("decoder", (new ModifiedDecoder(PacketFlow.SERVERBOUND)))
                                 .addLast("prepender", (new Varint21LengthFieldPrepender()))
                                 .addLast("encoder", (new ModifiedEncoder(PacketFlow.CLIENTBOUND)));
-                        connection = new ChatConnection(PacketFlow.SERVERBOUND);
-                        // todo; fix this lol
+                        ChatConnection connection = new ChatConnection(PacketFlow.SERVERBOUND);
                         connections.add(connection);
-                        connection.setListener(new ServerPacketListener(connection, server));
+                        connection.setListener(new HostPacketHandler(connection, server));
                         new Timer().schedule(new TimerTask() {
                             @Override
                             public void run() {
@@ -112,7 +109,7 @@ public class ChatHost {
         });
 
         Events.BROADCAST_CHAT_EVENT.register((message, network) -> {
-            byte[] bytes = message.signedBody().hash().asBytes();
+            //byte[] bytes = message.signedBody().hash().asBytes();
             for (ChatConnection connection : connections) {
                 //connection.send(new ClientboundPlayerChatHeaderPacket(message.signedHeader(), message.headerSignature(), bytes));
                 new Timer().schedule(new TimerTask() {
@@ -138,12 +135,18 @@ public class ChatHost {
 
         Events.PLAYER_JOINED.register((packet, player) -> {
             ClientboundPlayerInfoAccessor accessor = (ClientboundPlayerInfoAccessor) packet;
-            accessor.setEntries(List.copyOf(connection.getCustomPacketListener().getPlayersFromOtherServers().values()));
+            List<ClientboundPlayerInfoPacket.PlayerUpdate> playerUpdates = new ArrayList<>();
+            for (ChatConnection connection : connections) {
+                playerUpdates.addAll(connection.getCustomPacketListener().getPlayersFromOtherServers().values());
+            }
+            accessor.setEntries(playerUpdates);
             player.connection.send((Packet<?>) accessor);
         });
 
 
-        Events.HEADER_EVENT.register((bytes, header, signature) -> {
+        // I'm not actually sure if we need to send headers... testing with only two players
+        // leads me to believe we don't
+        Events.CHAT_HEADER_EVENT.register((bytes, header, signature) -> {
             for (ChatConnection connection : connections) {
                 //connection.send(new ClientboundPlayerChatHeaderPacket(header, signature, bytes));
             }

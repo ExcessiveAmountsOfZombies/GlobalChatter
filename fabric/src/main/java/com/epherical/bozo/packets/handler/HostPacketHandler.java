@@ -1,4 +1,4 @@
-package com.epherical.bozo;
+package com.epherical.bozo.packets.handler;
 
 import com.epherical.bozo.mixin.ClientboundPlayerInfoAccessor;
 import com.epherical.bozo.packets.HostBoundPlayerChatPacket;
@@ -69,14 +69,14 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ServerPacketListener implements ServerGamePacketListener {
+public class HostPacketHandler implements ServerGamePacketListener {
 
     private final Connection connection;
     private final MinecraftServer server;
 
     private Map<GameProfile, ClientboundPlayerInfoPacket.PlayerUpdate> playersFromOtherServers = new HashMap<>();
 
-    public ServerPacketListener(Connection connection, MinecraftServer server) {
+    public HostPacketHandler(Connection connection, MinecraftServer server) {
         this.connection = connection;
         this.server = server;
     }
@@ -103,9 +103,9 @@ public class ServerPacketListener implements ServerGamePacketListener {
     }
 
     public void handleHostHeader(HostboundPlayerChatHeaderPacket packet) {
-        System.out.println("Previous Signature: " + packet.getHeader().previousSignature());
+        /*System.out.println("Previous Signature: " + packet.getHeader().previousSignature());
         System.out.println("Current Signature?: " + packet.getHeaderSignature());
-        System.out.println("Sender: " + packet.getHeader().sender());
+        System.out.println("Sender: " + packet.getHeader().sender());*/
         ClientboundPlayerChatHeaderPacket headerPacket = new ClientboundPlayerChatHeaderPacket(packet.getHeader(), packet.getHeaderSignature(), packet.getBodyDigest());
         server.getPlayerList().broadcastAll(headerPacket);
     }

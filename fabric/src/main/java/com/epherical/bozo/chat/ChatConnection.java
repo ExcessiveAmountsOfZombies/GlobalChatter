@@ -1,7 +1,7 @@
 package com.epherical.bozo.chat;
 
 import com.epherical.bozo.ChatProtocol;
-import com.epherical.bozo.ServerPacketListener;
+import com.epherical.bozo.packets.handler.HostPacketHandler;
 import com.epherical.bozo.mixin.ConnectionAccessor;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
@@ -9,7 +9,6 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.AttributeKey;
 import net.minecraft.network.Connection;
 import net.minecraft.network.ConnectionProtocol;
-import net.minecraft.network.PacketListener;
 import net.minecraft.network.PacketSendListener;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.PacketFlow;
@@ -31,7 +30,7 @@ public class ChatConnection extends Connection {
     @Override
     public void exceptionCaught(ChannelHandlerContext channelHandlerContext, Throwable throwable) {
         super.exceptionCaught(channelHandlerContext, throwable);
-        System.out.println(throwable);
+        throwable.printStackTrace();
     }
 
     @Override
@@ -42,15 +41,13 @@ public class ChatConnection extends Connection {
         accessor.getChannel().attr(ATTRIBUTE_CHAT_PROTOCOL).set(ChatProtocol.CHAT_PROTOCOL);
     }
 
-    /**
-     * We do not care about the ConnectionProtocol, there is only 1 protocol for chat.
-     */
     @Override
     protected void sendPacket(Packet<?> packet, @Nullable PacketSendListener packetSendListener) {
         ConnectionAccessor accessor = (ConnectionAccessor) this;
         accessor.setSendPackets(accessor.getsentPackets() + 1);
 
         if (accessor.getChannel().eventLoop().inEventLoop()) {
+            // ConnectionProtocol does not matter, so the fields are nulled.
             this.doSendPacket(packet, packetSendListener, null, null);
         } else {
             accessor.getChannel().eventLoop().execute(() -> {
@@ -84,7 +81,7 @@ public class ChatConnection extends Connection {
         channelFuture.addListener(ChannelFutureListener.FIRE_EXCEPTION_ON_FAILURE);
     }
 
-    public ServerPacketListener getCustomPacketListener() {
-        return (ServerPacketListener) super.getPacketListener();
+    public HostPacketHandler getCustomPacketListener() {
+        return (HostPacketHandler) super.getPacketListener();
     }
 }

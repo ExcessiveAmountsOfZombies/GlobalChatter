@@ -1,6 +1,6 @@
 package com.epherical.bozo.packets;
 
-import com.epherical.bozo.ServerPacketListener;
+import com.epherical.bozo.packets.handler.HostPacketHandler;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.MessageSignature;
 import net.minecraft.network.chat.PlayerChatMessage;
@@ -40,14 +40,12 @@ public class HostboundPlayerChatHeaderPacket implements Packet<ServerGamePacketL
     @Override
     public void handle(ServerGamePacketListener handler) {
         try {
-            if (handler instanceof ServerPacketListener listener) {
+            if (handler instanceof HostPacketHandler listener) {
                 listener.handleHostHeader(this);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-
     }
 
     public byte[] getBodyDigest() {
