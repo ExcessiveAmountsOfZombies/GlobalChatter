@@ -1,6 +1,6 @@
-package com.epherical.bozo.mixin.infopacket;
+package com.epherical.chatter.mixin.infopacket;
 
-import com.epherical.bozo.event.Events;
+import com.epherical.chatter.event.Events;
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.level.ServerPlayerGameMode;

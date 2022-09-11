@@ -1,10 +1,12 @@
-package com.epherical.bozo.chat;
+package com.epherical.chatter.chat;
 
-import com.epherical.bozo.packets.handler.HostPacketHandler;
-import com.epherical.bozo.event.Events;
-import com.epherical.bozo.mixin.ClientboundPlayerInfoAccessor;
-import com.epherical.bozo.netty.ModifiedDecoder;
-import com.epherical.bozo.netty.ModifiedEncoder;
+import com.epherical.chatter.packets.handler.HostPacketHandler;
+import com.epherical.chatter.event.Events;
+import com.epherical.chatter.mixin.ClientboundPlayerInfoAccessor;
+import com.epherical.chatter.netty.ModifiedDecoder;
+import com.epherical.chatter.netty.ModifiedEncoder;
+import com.epherical.chatter.ChatterFabric;
+import com.mojang.authlib.GameProfile;
 import com.mojang.logging.LogUtils;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
@@ -26,6 +28,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.network.protocol.game.ClientboundDisconnectPacket;
+import net.minecraft.network.protocol.game.ClientboundPlayerChatHeaderPacket;
 import net.minecraft.network.protocol.game.ClientboundPlayerChatPacket;
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoPacket;
 import net.minecraft.network.protocol.game.ClientboundSystemChatPacket;
@@ -38,8 +41,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
-
-import static com.epherical.bozo.BozoFabric.*;
 
 public class ChatHost {
     private static final Logger LOGGER = LogUtils.getLogger();
@@ -62,7 +63,7 @@ public class ChatHost {
                                 .addLast("prepender", (new Varint21LengthFieldPrepender()))
                                 .addLast("encoder", (new ModifiedEncoder(PacketFlow.CLIENTBOUND)));
                         ChatConnection connection = new ChatConnection(PacketFlow.SERVERBOUND);
-                        connections.add(connection);
+                        ChatterFabric.connections.add(connection);
                         connection.setListener(new HostPacketHandler(connection, server));
                         new Timer().schedule(new TimerTask() {
                             @Override
@@ -73,8 +74,8 @@ public class ChatHost {
                         ch.pipeline().addLast("packet_handler", connection);
                     }
                 })
-                .group(GLOBAL_CHAT_EVENT_GROUP.get())
-                .localAddress(IP_ARG, PORT_ARG)
+                .group(ChatterFabric.GLOBAL_CHAT_EVENT_GROUP.get())
+                .localAddress(ChatterFabric.IP_ARG, ChatterFabric.PORT_ARG)
                 .bind()
                 .syncUninterruptibly();
 
@@ -83,8 +84,8 @@ public class ChatHost {
 
     private static void registerListeners(MinecraftServer mainServer) {
         ServerTickEvents.END_SERVER_TICK.register(server -> {
-            synchronized (connections) {
-                for (Iterator<ChatConnection> iterator = connections.iterator(); iterator.hasNext(); ) {
+            synchronized (ChatterFabric.connections) {
+                for (Iterator<ChatConnection> iterator = ChatterFabric.connections.iterator(); iterator.hasNext(); ) {
                     Connection connection = iterator.next();
                     if (connection.isConnected()) {
                         try {
@@ -110,7 +111,7 @@ public class ChatHost {
 
         Events.BROADCAST_CHAT_EVENT.register((message, network) -> {
             //byte[] bytes = message.signedBody().hash().asBytes();
-            for (ChatConnection connection : connections) {
+            for (ChatConnection connection : ChatterFabric.connections) {
                 //connection.send(new ClientboundPlayerChatHeaderPacket(message.signedHeader(), message.headerSignature(), bytes));
                 new Timer().schedule(new TimerTask() {
                     @Override
@@ -122,13 +123,25 @@ public class ChatHost {
         });
 
         ServerMessageEvents.GAME_MESSAGE.register((server1, message, overlay) -> {
-            for (ChatConnection connection : connections) {
+            for (ChatConnection connection : ChatterFabric.connections) {
                 connection.send(new ClientboundSystemChatPacket(message, overlay));
             }
         });
 
         Events.PLAYER_INFO_EVENT.register(packet -> {
-            for (ChatConnection connection : connections) {
+            if (packet.getAction() != ClientboundPlayerInfoPacket.Action.REMOVE_PLAYER) {
+                for (ClientboundPlayerInfoPacket.PlayerUpdate entry : packet.getEntries()) {
+                    GameProfile profile = entry.getProfile();
+                    if (profile.getName() != null) {
+                        HostPacketHandler.playersFromOtherServers.put(entry.getProfile(), entry);
+                    }
+                }
+            } else {
+                for (ClientboundPlayerInfoPacket.PlayerUpdate entry : packet.getEntries()) {
+                    HostPacketHandler.playersFromOtherServers.remove(entry.getProfile());
+                }
+            }
+            for (ChatConnection connection : ChatterFabric.connections) {
                 connection.send(packet);
             }
         });
@@ -136,7 +149,7 @@ public class ChatHost {
         Events.PLAYER_JOINED.register((packet, player) -> {
             ClientboundPlayerInfoAccessor accessor = (ClientboundPlayerInfoAccessor) packet;
             List<ClientboundPlayerInfoPacket.PlayerUpdate> playerUpdates = new ArrayList<>();
-            for (ChatConnection connection : connections) {
+            for (ChatConnection connection : ChatterFabric.connections) {
                 playerUpdates.addAll(connection.getCustomPacketListener().getPlayersFromOtherServers().values());
             }
             accessor.setEntries(playerUpdates);
@@ -147,8 +160,8 @@ public class ChatHost {
         // I'm not actually sure if we need to send headers... testing with only two players
         // leads me to believe we don't
         Events.CHAT_HEADER_EVENT.register((bytes, header, signature) -> {
-            for (ChatConnection connection : connections) {
-                //connection.send(new ClientboundPlayerChatHeaderPacket(header, signature, bytes));
+            for (ChatConnection connection : ChatterFabric.connections) {
+                connection.send(new ClientboundPlayerChatHeaderPacket(header, signature, bytes));
             }
         });
     }

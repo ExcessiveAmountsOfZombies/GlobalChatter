@@ -1,4 +1,4 @@
-package com.epherical.bozo.event;
+package com.epherical.chatter.event;
 
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;

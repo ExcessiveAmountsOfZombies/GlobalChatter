@@ -1,4 +1,4 @@
-package com.epherical.bozo.mixin;
+package com.epherical.chatter.mixin;
 
 import io.netty.channel.Channel;
 import net.minecraft.network.Connection;

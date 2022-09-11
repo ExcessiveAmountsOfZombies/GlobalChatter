@@ -1,4 +1,4 @@
-package com.epherical.bozo.mixin;
+package com.epherical.chatter.mixin;
 
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoPacket;
 import org.spongepowered.asm.mixin.Mixin;

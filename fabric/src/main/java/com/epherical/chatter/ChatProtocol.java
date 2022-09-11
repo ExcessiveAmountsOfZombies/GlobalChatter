@@ -1,11 +1,11 @@
-package com.epherical.bozo;
+package com.epherical.chatter;
 
-import com.epherical.bozo.packets.HostBoundPlayerChatPacket;
-import com.epherical.bozo.packets.HostBoundSystemChatPacket;
-import com.epherical.bozo.packets.HostboundPlayerChatHeaderPacket;
-import com.epherical.bozo.packets.HostboundPlayerInfoPacket;
-import com.epherical.bozo.packets.handler.HostPacketHandler;
-import com.epherical.bozo.packets.handler.ListenerPacketHandler;
+import com.epherical.chatter.packets.HostBoundPlayerChatPacket;
+import com.epherical.chatter.packets.HostBoundSystemChatPacket;
+import com.epherical.chatter.packets.HostboundPlayerChatHeaderPacket;
+import com.epherical.chatter.packets.HostboundPlayerInfoPacket;
+import com.epherical.chatter.packets.handler.HostPacketHandler;
+import com.epherical.chatter.packets.handler.ListenerPacketHandler;
 import com.google.common.collect.Maps;
 import net.minecraft.network.ConnectionProtocol;
 import net.minecraft.network.ConnectionProtocol.PacketSet;

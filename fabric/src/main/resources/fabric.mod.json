@@ -18,12 +18,12 @@
   "environment": "*",
   "accessWidener": "global_chatter.accesswidener",
   "entrypoints": {
-    "main": [
-      "com.epherical.bozo.BozoFabric"
+    "server": [
+      "com.epherical.chatter.ChatterFabric"
     ]
   },
   "mixins": [
-    "bozoiD.mixins.json"
+    "globalchatter.mixins.json"
   ],
   "depends": {
     "fabricloader": ">=0.13.3",

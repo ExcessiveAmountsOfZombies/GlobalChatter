@@ -1,6 +1,6 @@
-package com.epherical.bozo.mixin;
+package com.epherical.chatter.mixin;
 
-import com.epherical.bozo.event.Events;
+import com.epherical.chatter.event.Events;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.chat.ChatSender;
 import net.minecraft.network.chat.ChatType;

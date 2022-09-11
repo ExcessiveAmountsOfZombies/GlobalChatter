@@ -1,13 +1,14 @@
-package com.epherical.bozo.chat;
+package com.epherical.chatter.chat;
 
-import com.epherical.bozo.packets.handler.ListenerPacketHandler;
-import com.epherical.bozo.event.Events;
-import com.epherical.bozo.netty.ModifiedDecoder;
-import com.epherical.bozo.netty.ModifiedEncoder;
-import com.epherical.bozo.packets.HostBoundPlayerChatPacket;
-import com.epherical.bozo.packets.HostBoundSystemChatPacket;
-import com.epherical.bozo.packets.HostboundPlayerChatHeaderPacket;
-import com.epherical.bozo.packets.HostboundPlayerInfoPacket;
+import com.epherical.chatter.packets.handler.ListenerPacketHandler;
+import com.epherical.chatter.event.Events;
+import com.epherical.chatter.netty.ModifiedDecoder;
+import com.epherical.chatter.netty.ModifiedEncoder;
+import com.epherical.chatter.packets.HostBoundPlayerChatPacket;
+import com.epherical.chatter.packets.HostBoundSystemChatPacket;
+import com.epherical.chatter.packets.HostboundPlayerChatHeaderPacket;
+import com.epherical.chatter.packets.HostboundPlayerInfoPacket;
+import com.epherical.chatter.ChatterFabric;
 import com.mojang.logging.LogUtils;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
@@ -29,13 +30,14 @@ import org.slf4j.Logger;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import static com.epherical.bozo.BozoFabric.*;
-
 public class ChatListener {
+
+    private static long tick = 0;
+
     private static final Logger LOGGER = LogUtils.getLogger();
 
     private static ChannelFuture createConnection(ChatConnection connection) {
-        return new Bootstrap().group(GLOBAL_CHAT_EVENT_GROUP.get()).handler(new ChannelInitializer<>() {
+        return new Bootstrap().group(ChatterFabric.GLOBAL_CHAT_EVENT_GROUP.get()).handler(new ChannelInitializer<>() {
             @Override
             protected void initChannel(@NotNull Channel ch) throws Exception {
                 try {
@@ -48,9 +50,10 @@ public class ChatListener {
                         .addLast("decoder", (new ModifiedDecoder(PacketFlow.CLIENTBOUND)))
                         .addLast("prepender", (new Varint21LengthFieldPrepender()))
                         .addLast("encoder", (new ModifiedEncoder(PacketFlow.SERVERBOUND)))
+                        // memory leak potential? the server would disconnect if it didn't have @Sharable
                         .addLast("packet_handler", connection);
             }
-        }).channel(NioSocketChannel.class).connect(IP_ARG, PORT_ARG).syncUninterruptibly();
+        }).channel(NioSocketChannel.class).connect(ChatterFabric.IP_ARG, ChatterFabric.PORT_ARG).syncUninterruptibly();
     }
 
     public static void init(MinecraftServer server) {
@@ -68,8 +71,13 @@ public class ChatListener {
             if (connection.isConnected()) {
                 connection.tick();
             } else {
-                LOGGER.warn("CONNECTION TO MAIN SERVER WAS DISCONNECTED, ATTEMPTING RECONNECTION!");
-                createConnection(connection);
+                if (tick % 60 == 0) {
+                    try {
+                        LOGGER.warn("Connection to Host global chat was disconnected, attempting reconnection");
+                        createConnection(connection);
+                    } catch (Exception ignored) {}
+                }
+                tick++;
             }
         });
         ServerMessageEvents.GAME_MESSAGE.register((server1, message, overlay) -> {

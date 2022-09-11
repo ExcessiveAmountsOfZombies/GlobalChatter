@@ -1,4 +1,4 @@
-package com.epherical.bozo.packets.handler;
+package com.epherical.chatter.packets.handler;
 
 import net.minecraft.network.Connection;
 import net.minecraft.network.chat.Component;

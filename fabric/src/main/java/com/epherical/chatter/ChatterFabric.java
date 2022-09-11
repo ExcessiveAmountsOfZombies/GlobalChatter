@@ -1,11 +1,11 @@
-package com.epherical.bozo;
+package com.epherical.chatter;
 
-import com.epherical.bozo.chat.ChatConnection;
-import com.epherical.bozo.chat.ChatHost;
-import com.epherical.bozo.chat.ChatListener;
+import com.epherical.chatter.chat.ChatConnection;
+import com.epherical.chatter.chat.ChatHost;
+import com.epherical.chatter.chat.ChatListener;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.netty.channel.nio.NioEventLoopGroup;
-import net.fabricmc.api.ModInitializer;
+import net.fabricmc.api.DedicatedServerModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.util.LazyLoadedValue;
 
@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class BozoFabric implements ModInitializer {
+public class ChatterFabric implements DedicatedServerModInitializer {
 
     public static final LazyLoadedValue<NioEventLoopGroup> GLOBAL_CHAT_EVENT_GROUP = new LazyLoadedValue<>(() -> {
         return new NioEventLoopGroup(0, (new ThreadFactoryBuilder()).setNameFormat("Global Chat IO #%d").setDaemon(true).build());
@@ -28,7 +28,7 @@ public class BozoFabric implements ModInitializer {
     public static final boolean HOSTING = Boolean.parseBoolean(System.getProperty("glbl.chatter.is_hosting", "false"));
 
     @Override
-    public void onInitialize() {
+    public void onInitializeServer() {
         ServerLifecycleEvents.SERVER_STARTING.register(server -> {
             if (HOSTING) {
                 ChatHost.init(server);

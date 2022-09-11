@@ -1,6 +1,6 @@
-package com.epherical.bozo.packets;
+package com.epherical.chatter.packets;
 
-import com.epherical.bozo.packets.handler.HostPacketHandler;
+import com.epherical.chatter.packets.handler.HostPacketHandler;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;

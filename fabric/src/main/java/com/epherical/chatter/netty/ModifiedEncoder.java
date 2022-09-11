@@ -1,7 +1,7 @@
-package com.epherical.bozo.netty;
+package com.epherical.chatter.netty;
 
-import com.epherical.bozo.ChatProtocol;
-import com.epherical.bozo.chat.ChatConnection;
+import com.epherical.chatter.ChatProtocol;
+import com.epherical.chatter.chat.ChatConnection;
 import com.mojang.logging.LogUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;

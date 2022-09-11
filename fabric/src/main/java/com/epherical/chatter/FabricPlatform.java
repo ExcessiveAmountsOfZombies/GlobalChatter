@@ -1,5 +1,6 @@
-package com.epherical.bozo;
+package com.epherical.chatter;
 
+import com.epherical.bozo.CommonPlatform;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.FabricLoader;
 
