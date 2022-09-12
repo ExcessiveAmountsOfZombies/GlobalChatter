@@ -5,29 +5,29 @@ loaderVersion="[40,)" #mandatory This is typically bumped every Minecraft versio
 license="LGPL-3.0"
 #issueTrackerURL="http://my.issue.tracker/" #optional
 [[mods]] #mandatory
-modId="bozoiD" #mandatory
+modId="globalchatter" #mandatory
 # The version number of the mod - there's a few well known ${} variables useable here or just hardcode it
 # ${file.jarVersion} will substitute the value of the Implementation-Version as read from the mod's JAR file metadata
 # see the associated build.gradle script for how to populate this completely automatically during a build
-version="0.1.2" #mandatory ugh
-displayName="BOZOID" #mandatory
+version="1.0.0" #mandatory ugh
+displayName="Global Chatteer" #mandatory
 #updateJSONURL="http://myurl.me/" #optional
 displayURL="https://discord.gg/GZjtAn3F6W" #optional
 #logoFile="croptopia-forge.png" #optional
 #credits="Thanks for this example mod goes to Java" #optional
 authors="Thonk" #optional
 description='''
-Professions that earn you configurable rewards.
+Mod to add cross server chat between your minecraft servers
 '''
 # A dependency - use the . to indicate dependency for a specific modid. Dependencies are optional.
-[[dependencies.bozoiD]] #optional
+[[dependencies.globalchatter]] #optional
    modId="forge" #mandatory
    mandatory=true #mandatory
    versionRange="[37,)" #mandatory
    ordering="NONE"
    side="SERVER"
 # Here's another dependency
-[[dependencies.bozoiD]]
+[[dependencies.globalchatter]]
    modId="minecraft"
    mandatory=true
    versionRange="[1.18.2,)"

@@ -1,6 +1,6 @@
 package com.epherical.chatter.packets.handler;
 
-import com.epherical.chatter.ChatterFabric;
+import com.epherical.chatter.CommonPlatform;
 import com.epherical.chatter.chat.ChatConnection;
 import com.epherical.chatter.mixin.ClientboundPlayerInfoAccessor;
 import com.epherical.chatter.packets.HostBoundPlayerChatPacket;
@@ -70,7 +70,6 @@ import net.minecraft.server.level.ServerPlayer;
 
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class HostPacketHandler implements ServerGamePacketListener {
@@ -109,7 +108,7 @@ public class HostPacketHandler implements ServerGamePacketListener {
             accessor.setEntries(Lists.newArrayList(playersFromOtherServers.values()));
         }
 
-        for (ChatConnection chatConnection : ChatterFabric.connections) {
+        for (ChatConnection chatConnection : CommonPlatform.connections) {
             chatConnection.send((Packet<?>) accessor);
         }
     }
@@ -120,7 +119,7 @@ public class HostPacketHandler implements ServerGamePacketListener {
         System.out.println("Sender: " + packet.getHeader().sender());*/
         ClientboundPlayerChatHeaderPacket headerPacket = new ClientboundPlayerChatHeaderPacket(packet.getHeader(), packet.getHeaderSignature(), packet.getBodyDigest());
         server.getPlayerList().broadcastAll(headerPacket);
-        for (ChatConnection chatConnection : ChatterFabric.connections) {
+        for (ChatConnection chatConnection : CommonPlatform.connections) {
             if (!chatConnection.equals(connection)) {
                 chatConnection.send(headerPacket);
             }
@@ -133,7 +132,7 @@ public class HostPacketHandler implements ServerGamePacketListener {
             player.connection.addPendingMessage(packet.getPlayerChatMessage());
             player.connection.send(chatPacket);
         }
-        for (ChatConnection chatConnection : ChatterFabric.connections) {
+        for (ChatConnection chatConnection : CommonPlatform.connections) {
             if (!chatConnection.equals(connection)) {
                 chatConnection.send(chatPacket);
             }
@@ -143,7 +142,7 @@ public class HostPacketHandler implements ServerGamePacketListener {
     public void handleHostSystem(HostBoundSystemChatPacket packet) {
         ClientboundSystemChatPacket chatPacket = new ClientboundSystemChatPacket(packet.getComponent(), packet.isOverlay());
         server.getPlayerList().broadcastAll(chatPacket);
-        for (ChatConnection chatConnection : ChatterFabric.connections) {
+        for (ChatConnection chatConnection : CommonPlatform.connections) {
             if (!chatConnection.equals(connection)) {
                 chatConnection.send(chatPacket);
             }

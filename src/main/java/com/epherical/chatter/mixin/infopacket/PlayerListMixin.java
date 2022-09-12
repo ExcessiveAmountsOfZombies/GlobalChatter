@@ -1,6 +1,6 @@
 package com.epherical.chatter.mixin.infopacket;
 
-import com.epherical.chatter.event.Events;
+import com.epherical.chatter.CommonPlatform;
 import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoPacket;
 import net.minecraft.server.level.ServerPlayer;
@@ -17,25 +17,27 @@ import java.util.List;
 @Mixin(PlayerList.class)
 public class PlayerListMixin {
 
-    @Shadow @Final private List<ServerPlayer> players;
+    @Shadow
+    @Final
+    private List<ServerPlayer> players;
 
     @Inject(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/players/PlayerList;broadcastAll(Lnet/minecraft/network/protocol/Packet;)V"))
     public void globalchatter$onPacket(CallbackInfo ci) {
-        Events.PLAYER_INFO_EVENT.invoker().onPlayerInfo(new ClientboundPlayerInfoPacket(ClientboundPlayerInfoPacket.Action.UPDATE_LATENCY, this.players));
+        CommonPlatform.platform.firePlayerInfoEvent(new ClientboundPlayerInfoPacket(ClientboundPlayerInfoPacket.Action.UPDATE_LATENCY, this.players));
     }
 
     @Inject(method = "placeNewPlayer", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/players/PlayerList;broadcastAll(Lnet/minecraft/network/protocol/Packet;)V"))
     public void globalchatter$placePlayer(Connection netManager, ServerPlayer player, CallbackInfo ci) {
-        Events.PLAYER_INFO_EVENT.invoker().onPlayerInfo(new ClientboundPlayerInfoPacket(ClientboundPlayerInfoPacket.Action.ADD_PLAYER, player));
+        CommonPlatform.platform.firePlayerInfoEvent(new ClientboundPlayerInfoPacket(ClientboundPlayerInfoPacket.Action.ADD_PLAYER, player));
     }
 
     @Inject(method = "placeNewPlayer", at = @At(value = "INVOKE", target = "Ljava/util/List;size()I"))
     public void globallchatter$sendBack(Connection netManager, ServerPlayer player, CallbackInfo ci) {
-        Events.PLAYER_JOINED.invoker().onPlayerJoin(new ClientboundPlayerInfoPacket(ClientboundPlayerInfoPacket.Action.ADD_PLAYER, this.players), player);
+        CommonPlatform.platform.firePlayerInfoJoin(new ClientboundPlayerInfoPacket(ClientboundPlayerInfoPacket.Action.ADD_PLAYER, this.players), player);
     }
 
     @Inject(method = "remove", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/players/PlayerList;broadcastAll(Lnet/minecraft/network/protocol/Packet;)V"))
     public void globalchatter$removePlayer(ServerPlayer player, CallbackInfo ci) {
-        Events.PLAYER_INFO_EVENT.invoker().onPlayerInfo(new ClientboundPlayerInfoPacket(ClientboundPlayerInfoPacket.Action.REMOVE_PLAYER, player));
+        CommonPlatform.platform.firePlayerInfoEvent(new ClientboundPlayerInfoPacket(ClientboundPlayerInfoPacket.Action.REMOVE_PLAYER, player));
     }
 }

@@ -28,6 +28,7 @@ subprojects {
 
 minecraft {
     version(minecraft_version)
+    accessWideners(project.file("src/main/resources/globalchatter-root.accesswidener"))
 }
 
 dependencies {

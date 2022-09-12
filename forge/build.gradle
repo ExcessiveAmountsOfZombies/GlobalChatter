@@ -24,6 +24,11 @@ configurations {
     compileOnly.extendsFrom shadeSource
 }
 
+mixin {
+    add sourceSets.main, "Globalchatter-refmap.json"
+    config "globalchatter.mixins.json"
+}
+
 minecraft {
     accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
     mappings channel: 'official', version: "${minecraft_version}"
@@ -31,7 +36,7 @@ minecraft {
         client {
             workingDirectory project.file('run')
             property 'legacyClassPath', '{minecraft_classpath}'
-            arg "-mixin.config=bozoiD.mixins.json"
+            arg "-mixin.config=globalchatter.mixins.json"
             // Recommended logging data for a userdev environment
             //property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
             // Recommended logging level for the console //property 'forge.logging.console.level', 'debug'
@@ -106,14 +111,14 @@ artifacts {
 jar {
     manifest {
         attributes([
-                "Specification-Title": "idbozoiD",
+                "Specification-Title": "Global Chatter",
                 "Specification-Vendor": "epherical.com",
                 "Specification-Version": "1",
                 "Implementation-Title": "${archives_base_name}",
                 "Implementation-Version": "${mod_version}",
                 "Implementation-Vendor" :"epherical.com",
                 "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
-                "MixinConfigs": "bozoiD.mixins.json"
+                "MixinConfigs": "globalchatter.mixins.json"
         ])
     }
 }

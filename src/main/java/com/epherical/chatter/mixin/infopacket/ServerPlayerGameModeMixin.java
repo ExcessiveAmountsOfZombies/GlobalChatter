@@ -1,6 +1,6 @@
 package com.epherical.chatter.mixin.infopacket;
 
-import com.epherical.chatter.event.Events;
+import com.epherical.chatter.CommonPlatform;
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.level.ServerPlayerGameMode;
@@ -15,10 +15,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(ServerPlayerGameMode.class)
 public class ServerPlayerGameModeMixin {
 
-    @Shadow @Final protected ServerPlayer player;
+    @Shadow
+    @Final
+    protected ServerPlayer player;
 
     @Inject(method = "setGameModeForPlayer", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/players/PlayerList;broadcastAll(Lnet/minecraft/network/protocol/Packet;)V"))
     public void globalchatter$pass(GameType gameType, GameType gameType2, CallbackInfo ci) {
-        Events.PLAYER_INFO_EVENT.invoker().onPlayerInfo(new ClientboundPlayerInfoPacket(ClientboundPlayerInfoPacket.Action.UPDATE_GAME_MODE, this.player));
+        CommonPlatform.platform.firePlayerInfoEvent(new ClientboundPlayerInfoPacket(ClientboundPlayerInfoPacket.Action.UPDATE_GAME_MODE, this.player));
     }
 }

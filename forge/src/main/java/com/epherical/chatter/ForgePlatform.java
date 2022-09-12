@@ -1,64 +1,62 @@
 package com.epherical.chatter;
 
-import com.epherical.chatter.event.Events;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.loader.api.FabricLoader;
+import com.epherical.chatter.events.BroadcastChat;
+import com.epherical.chatter.events.ChatHeaderEvent;
+import com.epherical.chatter.events.GatherPlayerInfo;
+import com.epherical.chatter.events.PlayerInfoJoined;
 import net.minecraft.network.chat.ChatType;
 import net.minecraft.network.chat.MessageSignature;
 import net.minecraft.network.chat.PlayerChatMessage;
 import net.minecraft.network.chat.SignedMessageHeader;
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoPacket;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.fml.loading.FMLEnvironment;
+import net.minecraftforge.fml.loading.FMLPaths;
 
 import java.nio.file.Path;
 
-public class FabricPlatform extends CommonPlatform<FabricPlatform> {
-
-    public final EventHandler hostEventHandler;
-
-    public FabricPlatform() {
-        hostEventHandler = new EventHandler();
-    }
-
+public class ForgePlatform extends CommonPlatform<ForgePlatform> {
 
     @Override
-    public FabricPlatform getPlatform() {
+    public ForgePlatform getPlatform() {
         return this;
     }
 
     @Override
     public boolean isClientEnvironment() {
-        return FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT;
+        return FMLEnvironment.dist == Dist.CLIENT;
     }
 
     @Override
     public boolean isServerEnvironment() {
-        return FabricLoader.getInstance().getEnvironmentType() == EnvType.SERVER;
+        return FMLEnvironment.dist == Dist.DEDICATED_SERVER;
     }
 
     @Override
     public Path getRootConfigPath() {
-        return FabricLoader.getInstance().getConfigDir().resolve("GlobalChatter");
+        return FMLPaths.CONFIGDIR.get();
     }
 
     @Override
     public void firePlayerInfoEvent(ClientboundPlayerInfoPacket packet) {
-        Events.PLAYER_INFO_EVENT.invoker().onPlayerInfo(packet);
+        MinecraftForge.EVENT_BUS.post(new GatherPlayerInfo(packet));
     }
 
     @Override
     public void firePlayerInfoJoin(ClientboundPlayerInfoPacket packet, ServerPlayer player) {
-        Events.PLAYER_JOINED.invoker().onPlayerJoin(packet, player);
+        MinecraftForge.EVENT_BUS.post(new PlayerInfoJoined(packet, player));
     }
 
     @Override
     public void fireBroadcastChat(PlayerChatMessage message, ChatType.BoundNetwork network) {
-        Events.BROADCAST_CHAT_EVENT.invoker().onBroadcast(message, network);
+        MinecraftForge.EVENT_BUS.post(new BroadcastChat(message, network));
     }
 
     @Override
     public void fireChatHeader(byte[] bytes, SignedMessageHeader header, MessageSignature signature) {
-        Events.CHAT_HEADER_EVENT.invoker().onBroadcastHeader(bytes, header, signature);
+        MinecraftForge.EVENT_BUS.post(new ChatHeaderEvent(bytes, header, signature));
     }
 
 }

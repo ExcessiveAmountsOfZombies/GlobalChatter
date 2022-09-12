@@ -49,7 +49,7 @@ public class ChatConnection extends Connection {
     }
 
     @Override
-    protected void sendPacket(Packet<?> packet, @Nullable PacketSendListener packetSendListener) {
+    public void sendPacket(Packet<?> packet, @Nullable PacketSendListener packetSendListener) {
         ConnectionAccessor accessor = (ConnectionAccessor) this;
         accessor.setSendPackets(accessor.getsentPackets() + 1);
 
@@ -64,7 +64,7 @@ public class ChatConnection extends Connection {
     }
 
     @Override
-    protected void doSendPacket(Packet<?> packet, @Nullable PacketSendListener packetSendListener, ConnectionProtocol connectionProtocol, ConnectionProtocol connectionProtocol2) {
+    public void doSendPacket(Packet<?> packet, @Nullable PacketSendListener packetSendListener, ConnectionProtocol connectionProtocol, ConnectionProtocol connectionProtocol2) {
         if (connectionProtocol != connectionProtocol2) {
             this.setProtocol(connectionProtocol);
         }
