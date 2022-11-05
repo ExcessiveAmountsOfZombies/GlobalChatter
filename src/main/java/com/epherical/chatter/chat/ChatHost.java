@@ -1,11 +1,9 @@
 package com.epherical.chatter.chat;
 
 import com.epherical.chatter.CommonPlatform;
-import com.epherical.chatter.mixin.ClientboundPlayerInfoAccessor;
 import com.epherical.chatter.netty.ModifiedDecoder;
 import com.epherical.chatter.netty.ModifiedEncoder;
 import com.epherical.chatter.packets.handler.HostPacketHandler;
-import com.mojang.authlib.GameProfile;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelException;
@@ -13,27 +11,13 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import net.minecraft.CrashReport;
-import net.minecraft.ReportedException;
-import net.minecraft.network.Connection;
 import net.minecraft.network.ConnectionProtocol;
-import net.minecraft.network.PacketSendListener;
 import net.minecraft.network.Varint21FrameDecoder;
 import net.minecraft.network.Varint21LengthFieldPrepender;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.PacketFlow;
-import net.minecraft.network.protocol.game.ClientboundDisconnectPacket;
-import net.minecraft.network.protocol.game.ClientboundPlayerChatHeaderPacket;
-import net.minecraft.network.protocol.game.ClientboundPlayerChatPacket;
-import net.minecraft.network.protocol.game.ClientboundPlayerInfoPacket;
-import net.minecraft.network.protocol.game.ClientboundSystemChatPacket;
 import net.minecraft.server.MinecraftServer;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 

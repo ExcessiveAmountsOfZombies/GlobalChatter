@@ -2,10 +2,8 @@ accessWidener	v1	named
 accessible class net/minecraft/network/ConnectionProtocol$PacketSet
 accessible method net/minecraft/network/ConnectionProtocol$PacketSet <init> ()V
 
-extendable method net/minecraft/network/Connection sendPacket (Lnet/minecraft/network/protocol/Packet;Lnet/minecraft/network/PacketSendListener;)V
-extendable method net/minecraft/network/Connection doSendPacket (Lnet/minecraft/network/protocol/Packet;Lnet/minecraft/network/PacketSendListener;Lnet/minecraft/network/ConnectionProtocol;Lnet/minecraft/network/ConnectionProtocol;)V
-
-accessible method net/minecraft/server/network/ServerGamePacketListenerImpl getSignedMessage (Lnet/minecraft/network/protocol/game/ServerboundChatPacket;)Lnet/minecraft/network/chat/PlayerChatMessage;
+extendable method net/minecraft/network/Connection sendPacket (Lnet/minecraft/network/protocol/Packet;Lio/netty/util/concurrent/GenericFutureListener;)V
+extendable method net/minecraft/network/Connection doSendPacket (Lnet/minecraft/network/protocol/Packet;Lio/netty/util/concurrent/GenericFutureListener;Lnet/minecraft/network/ConnectionProtocol;Lnet/minecraft/network/ConnectionProtocol;)V
 
 accessible method net/minecraft/network/protocol/game/ClientboundPlayerInfoPacket$Action read (Lnet/minecraft/network/FriendlyByteBuf;)Lnet/minecraft/network/protocol/game/ClientboundPlayerInfoPacket$PlayerUpdate;
 accessible method net/minecraft/network/protocol/game/ClientboundPlayerInfoPacket$Action write (Lnet/minecraft/network/FriendlyByteBuf;Lnet/minecraft/network/protocol/game/ClientboundPlayerInfoPacket$PlayerUpdate;)V

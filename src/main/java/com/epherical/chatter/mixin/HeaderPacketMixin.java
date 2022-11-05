@@ -1,10 +1,8 @@
 package com.epherical.chatter.mixin;
 
 import com.epherical.chatter.CommonPlatform;
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.network.chat.ChatSender;
 import net.minecraft.network.chat.ChatType;
-import net.minecraft.network.chat.PlayerChatMessage;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.PlayerList;
@@ -15,7 +13,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import java.util.function.Predicate;
+import java.util.UUID;
+import java.util.function.Function;
 
 @Mixin(PlayerList.class)
 public class HeaderPacketMixin {
@@ -24,20 +23,10 @@ public class HeaderPacketMixin {
     @Final
     private MinecraftServer server;
 
-    @Inject(method = "broadcastChatMessage(Lnet/minecraft/network/chat/PlayerChatMessage;Ljava/util/function/Predicate;Lnet/minecraft/server/level/ServerPlayer;Lnet/minecraft/network/chat/ChatSender;Lnet/minecraft/network/chat/ChatType$Bound;)V", at = @At("HEAD"))
-    public void globalchatter$broadcastMessageEvent(PlayerChatMessage playerChatMessage, Predicate<ServerPlayer> predicate, ServerPlayer serverPlayer, ChatSender chatSender, ChatType.Bound bound, CallbackInfo ci) {
-        CommonPlatform.platform.fireChatHeader(playerChatMessage.signedBody().hash().asBytes(),
-                playerChatMessage.signedHeader(), playerChatMessage.headerSignature());
+
+    @Inject(method = "broadcastMessage(Lnet/minecraft/network/chat/Component;Ljava/util/function/Function;Lnet/minecraft/network/chat/ChatType;Ljava/util/UUID;)V",
+            at = @At("HEAD"))
+    public void globalchatter$broadcastChat(Component message, Function<ServerPlayer, Component> predicate, ChatType type, UUID fromUUID, CallbackInfo ci) {
+        CommonPlatform.platform.fireBroadcastChat(message, type, fromUUID);
     }
-
-
-    @Inject(method = "broadcastChatMessage(Lnet/minecraft/network/chat/PlayerChatMessage;Ljava/util/function/Predicate;Lnet/minecraft/server/level/ServerPlayer;Lnet/minecraft/network/chat/ChatSender;Lnet/minecraft/network/chat/ChatType$Bound;)V",
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/network/chat/PlayerChatMessage;isFullyFiltered()Z"))
-    public void globalchatter$broadcastChat(PlayerChatMessage playerChatMessage, Predicate<ServerPlayer> predicate, ServerPlayer serverPlayer, ChatSender chatSender, ChatType.Bound bound, CallbackInfo ci) {
-        RegistryAccess registryAccess = this.server.registryAccess();
-        ChatType.BoundNetwork boundNetwork = bound.toNetwork(registryAccess);
-        CommonPlatform.platform.fireBroadcastChat(playerChatMessage, boundNetwork);
-    }
-
-
 }

@@ -17,36 +17,8 @@ public class ListenerPacketHandler implements ClientGamePacketListener {
     }
 
     @Override
-    public void handleSystemChat(ClientboundSystemChatPacket packet) {
-        server.getPlayerList().broadcastAll(packet);
-    }
-
-    @Override
-    public void handlePlayerChat(ClientboundPlayerChatPacket packet) {
-        for (ServerPlayer player : server.getPlayerList().getPlayers()) {
-            player.connection.addPendingMessage(packet.message());
-            player.connection.send(packet);
-        }
-    }
-
-    @Override
-    public void handlePlayerChatHeader(ClientboundPlayerChatHeaderPacket clientboundPlayerChatHeaderPacket) {
-        server.getPlayerList().broadcastAll(clientboundPlayerChatHeaderPacket);
-    }
-
-    @Override
-    public void handleChatPreview(ClientboundChatPreviewPacket clientboundChatPreviewPacket) {
-        //System.out.println(clientboundChatPreviewPacket.preview());
-    }
-
-    @Override
-    public void handleSetDisplayChatPreview(ClientboundSetDisplayChatPreviewPacket clientboundSetDisplayChatPreviewPacket) {
-        //System.out.println(clientboundSetDisplayChatPreviewPacket.enabled());
-    }
-
-    @Override
-    public void handleDeleteChat(ClientboundDeleteChatPacket clientboundDeleteChatPacket) {
-        server.getPlayerList().broadcastAll(clientboundDeleteChatPacket);
+    public void handleChat(ClientboundChatPacket clientboundChatPacket) {
+        server.getPlayerList().broadcastAll(clientboundChatPacket);
     }
 
     @Override
@@ -70,23 +42,22 @@ public class ListenerPacketHandler implements ClientGamePacketListener {
     }
 
     @Override
-    public void handleServerData(ClientboundServerDataPacket clientboundServerDataPacket) {
-        //System.out.println(clientboundServerDataPacket.enforcesSecureChat());
-    }
-
-    @Override
-    public void handleCustomChatCompletions(ClientboundCustomChatCompletionsPacket clientboundCustomChatCompletionsPacket) {
-        //System.out.println(clientboundCustomChatCompletionsPacket.action());
-    }
-
-    @Override
     public void handleAddEntity(ClientboundAddEntityPacket packet) {}
 
     @Override
     public void handleAddExperienceOrb(ClientboundAddExperienceOrbPacket packet) {}
 
     @Override
+    public void handleAddVibrationSignal(ClientboundAddVibrationSignalPacket clientboundAddVibrationSignalPacket) {}
+
+    @Override
+    public void handleAddMob(ClientboundAddMobPacket clientboundAddMobPacket) {}
+
+    @Override
     public void handleAddObjective(ClientboundSetObjectivePacket packet) {}
+
+    @Override
+    public void handleAddPainting(ClientboundAddPaintingPacket clientboundAddPaintingPacket) {}
 
     @Override
     public void handleAddPlayer(ClientboundAddPlayerPacket packet) {}
@@ -349,7 +320,9 @@ public class ListenerPacketHandler implements ClientGamePacketListener {
     public void handleSetChunkCacheCenter(ClientboundSetChunkCacheCenterPacket packet) {}
 
     @Override
-    public void handleBlockChangedAck(ClientboundBlockChangedAckPacket clientboundBlockChangedAckPacket) {}
+    public void handleBlockBreakAck(ClientboundBlockBreakAckPacket clientboundBlockBreakAckPacket) {
+
+    }
 
     @Override
     public void setSubtitleText(ClientboundSetSubtitleTextPacket packet) {}

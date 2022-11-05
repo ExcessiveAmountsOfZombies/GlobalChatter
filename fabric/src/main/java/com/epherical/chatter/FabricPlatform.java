@@ -4,13 +4,12 @@ import com.epherical.chatter.event.Events;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.network.chat.ChatType;
-import net.minecraft.network.chat.MessageSignature;
-import net.minecraft.network.chat.PlayerChatMessage;
-import net.minecraft.network.chat.SignedMessageHeader;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoPacket;
 import net.minecraft.server.level.ServerPlayer;
 
 import java.nio.file.Path;
+import java.util.UUID;
 
 public class FabricPlatform extends CommonPlatform<FabricPlatform> {
 
@@ -52,13 +51,8 @@ public class FabricPlatform extends CommonPlatform<FabricPlatform> {
     }
 
     @Override
-    public void fireBroadcastChat(PlayerChatMessage message, ChatType.BoundNetwork network) {
-        Events.BROADCAST_CHAT_EVENT.invoker().onBroadcast(message, network);
-    }
-
-    @Override
-    public void fireChatHeader(byte[] bytes, SignedMessageHeader header, MessageSignature signature) {
-        Events.CHAT_HEADER_EVENT.invoker().onBroadcastHeader(bytes, header, signature);
+    public void fireBroadcastChat(Component message, ChatType type, UUID fromUUID) {
+        Events.BROADCAST_CHAT_EVENT.invoker().onBroadcast(message, type, fromUUID);
     }
 
 }

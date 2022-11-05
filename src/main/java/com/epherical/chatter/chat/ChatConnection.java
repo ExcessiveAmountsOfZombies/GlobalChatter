@@ -1,17 +1,18 @@
 package com.epherical.chatter.chat;
 
 import com.epherical.chatter.ChatProtocol;
-import com.epherical.chatter.packets.handler.HostPacketHandler;
 import com.epherical.chatter.mixin.ConnectionAccessor;
+import com.epherical.chatter.packets.handler.HostPacketHandler;
 import com.mojang.logging.LogUtils;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.AttributeKey;
+import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.GenericFutureListener;
 import net.minecraft.network.Connection;
 import net.minecraft.network.ConnectionProtocol;
-import net.minecraft.network.PacketSendListener;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.PacketFlow;
 import org.jetbrains.annotations.Nullable;
@@ -49,9 +50,9 @@ public class ChatConnection extends Connection {
     }
 
     @Override
-    public void sendPacket(Packet<?> packet, @Nullable PacketSendListener packetSendListener) {
+    protected void sendPacket(Packet<?> packet, @Nullable GenericFutureListener<? extends Future<? super Void>> packetSendListener) {
         ConnectionAccessor accessor = (ConnectionAccessor) this;
-        accessor.setSendPackets(accessor.getsentPackets() + 1);
+        accessor.setSendPackets(accessor.getSentPackets() + 1);
 
         if (accessor.getChannel().eventLoop().inEventLoop()) {
             // ConnectionProtocol does not matter, so the fields are nulled.
@@ -64,27 +65,16 @@ public class ChatConnection extends Connection {
     }
 
     @Override
-    public void doSendPacket(Packet<?> packet, @Nullable PacketSendListener packetSendListener, ConnectionProtocol connectionProtocol, ConnectionProtocol connectionProtocol2) {
+    protected void doSendPacket(Packet<?> packet, @Nullable GenericFutureListener<? extends Future<? super Void>> packetSendListener, ConnectionProtocol connectionProtocol, ConnectionProtocol connectionProtocol2) {
         if (connectionProtocol != connectionProtocol2) {
             this.setProtocol(connectionProtocol);
         }
+
         ConnectionAccessor accessor = (ConnectionAccessor) this;
-
-        ChannelFuture channelFuture =  accessor.getChannel().writeAndFlush(packet);
+        ChannelFuture channelFuture = accessor.getChannel().writeAndFlush(packet);
         if (packetSendListener != null) {
-            channelFuture.addListener((future) -> {
-                if (future.isSuccess()) {
-                    packetSendListener.onSuccess();
-                } else {
-                    Packet<?> failedPacket = packetSendListener.onFailure();
-                    if (failedPacket != null) {
-                        ChannelFuture newFuture = accessor.getChannel().writeAndFlush(failedPacket);
-                        newFuture.addListener(ChannelFutureListener.FIRE_EXCEPTION_ON_FAILURE);
-                    }
-                }
-            });
+            channelFuture.addListener(packetSendListener);
         }
-
         channelFuture.addListener(ChannelFutureListener.FIRE_EXCEPTION_ON_FAILURE);
     }
 

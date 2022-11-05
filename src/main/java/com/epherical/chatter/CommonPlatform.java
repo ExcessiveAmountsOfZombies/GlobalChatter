@@ -4,9 +4,7 @@ import com.epherical.chatter.chat.ChatConnection;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.netty.channel.nio.NioEventLoopGroup;
 import net.minecraft.network.chat.ChatType;
-import net.minecraft.network.chat.MessageSignature;
-import net.minecraft.network.chat.PlayerChatMessage;
-import net.minecraft.network.chat.SignedMessageHeader;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.LazyLoadedValue;
@@ -15,6 +13,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 public abstract class CommonPlatform<T> {
 
@@ -51,8 +50,6 @@ public abstract class CommonPlatform<T> {
 
     public abstract void firePlayerInfoJoin(ClientboundPlayerInfoPacket packet, ServerPlayer player);
 
-    public abstract void fireBroadcastChat(PlayerChatMessage message, ChatType.BoundNetwork network);
-
-    public abstract void fireChatHeader(byte[] bytes, SignedMessageHeader header, MessageSignature signature);
+    public abstract void fireBroadcastChat(Component message, ChatType type, UUID fromUUID);
 
 }

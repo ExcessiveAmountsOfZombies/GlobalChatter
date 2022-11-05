@@ -4,26 +4,19 @@ import com.epherical.chatter.CommonPlatform;
 import com.epherical.chatter.chat.ChatConnection;
 import com.epherical.chatter.mixin.ClientboundPlayerInfoAccessor;
 import com.epherical.chatter.packets.HostBoundPlayerChatPacket;
-import com.epherical.chatter.packets.HostBoundSystemChatPacket;
-import com.epherical.chatter.packets.HostboundPlayerChatHeaderPacket;
 import com.epherical.chatter.packets.HostboundPlayerInfoPacket;
 import com.google.common.collect.Lists;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.network.Connection;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientboundPlayerChatHeaderPacket;
-import net.minecraft.network.protocol.game.ClientboundPlayerChatPacket;
+import net.minecraft.network.protocol.game.ClientboundChatPacket;
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoPacket;
-import net.minecraft.network.protocol.game.ClientboundSystemChatPacket;
 import net.minecraft.network.protocol.game.ServerGamePacketListener;
 import net.minecraft.network.protocol.game.ServerboundAcceptTeleportationPacket;
 import net.minecraft.network.protocol.game.ServerboundBlockEntityTagQuery;
 import net.minecraft.network.protocol.game.ServerboundChangeDifficultyPacket;
-import net.minecraft.network.protocol.game.ServerboundChatAckPacket;
-import net.minecraft.network.protocol.game.ServerboundChatCommandPacket;
 import net.minecraft.network.protocol.game.ServerboundChatPacket;
-import net.minecraft.network.protocol.game.ServerboundChatPreviewPacket;
 import net.minecraft.network.protocol.game.ServerboundClientCommandPacket;
 import net.minecraft.network.protocol.game.ServerboundClientInformationPacket;
 import net.minecraft.network.protocol.game.ServerboundCommandSuggestionPacket;
@@ -113,38 +106,14 @@ public class HostPacketHandler implements ServerGamePacketListener {
         }
     }
 
-    public void handleHostHeader(HostboundPlayerChatHeaderPacket packet) {
-        /*System.out.println("Previous Signature: " + packet.getHeader().previousSignature());
-        System.out.println("Current Signature?: " + packet.getHeaderSignature());
-        System.out.println("Sender: " + packet.getHeader().sender());*/
-        ClientboundPlayerChatHeaderPacket headerPacket = new ClientboundPlayerChatHeaderPacket(packet.getHeader(), packet.getHeaderSignature(), packet.getBodyDigest());
-        server.getPlayerList().broadcastAll(headerPacket);
-        for (ChatConnection chatConnection : CommonPlatform.connections) {
-            if (!chatConnection.equals(connection)) {
-                chatConnection.send(headerPacket);
-            }
-        }
-    }
-
     public void handleHostChat(HostBoundPlayerChatPacket packet) {
-        ClientboundPlayerChatPacket chatPacket = new ClientboundPlayerChatPacket(packet.getPlayerChatMessage(), packet.getBoundNetwork());
+        ClientboundChatPacket packet1 = new ClientboundChatPacket(packet.getMessage(), packet.getType(), packet.getSender());
         for (ServerPlayer player : server.getPlayerList().getPlayers()) {
-            player.connection.addPendingMessage(packet.getPlayerChatMessage());
-            player.connection.send(chatPacket);
+            player.connection.send(packet1);
         }
         for (ChatConnection chatConnection : CommonPlatform.connections) {
             if (!chatConnection.equals(connection)) {
-                chatConnection.send(chatPacket);
-            }
-        }
-    }
-
-    public void handleHostSystem(HostBoundSystemChatPacket packet) {
-        ClientboundSystemChatPacket chatPacket = new ClientboundSystemChatPacket(packet.getComponent(), packet.isOverlay());
-        server.getPlayerList().broadcastAll(chatPacket);
-        for (ChatConnection chatConnection : CommonPlatform.connections) {
-            if (!chatConnection.equals(connection)) {
-                chatConnection.send(chatPacket);
+                chatConnection.send(packet1);
             }
         }
     }
@@ -166,21 +135,6 @@ public class HostPacketHandler implements ServerGamePacketListener {
 
     @Override
     public void handleChat(ServerboundChatPacket packet) {
-
-    }
-
-    @Override
-    public void handleChatCommand(ServerboundChatCommandPacket serverboundChatCommandPacket) {
-
-    }
-
-    @Override
-    public void handleChatPreview(ServerboundChatPreviewPacket serverboundChatPreviewPacket) {
-
-    }
-
-    @Override
-    public void handleChatAck(ServerboundChatAckPacket serverboundChatAckPacket) {
 
     }
 

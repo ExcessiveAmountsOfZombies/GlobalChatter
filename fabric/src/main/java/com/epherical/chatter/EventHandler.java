@@ -4,25 +4,19 @@ import com.epherical.chatter.chat.ChatConnection;
 import com.epherical.chatter.event.Events;
 import com.epherical.chatter.mixin.ClientboundPlayerInfoAccessor;
 import com.epherical.chatter.packets.HostBoundPlayerChatPacket;
-import com.epherical.chatter.packets.HostBoundSystemChatPacket;
-import com.epherical.chatter.packets.HostboundPlayerChatHeaderPacket;
 import com.epherical.chatter.packets.HostboundPlayerInfoPacket;
 import com.epherical.chatter.packets.handler.HostPacketHandler;
 import com.mojang.authlib.GameProfile;
 import com.mojang.logging.LogUtils;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
-import net.fabricmc.fabric.api.message.v1.ServerMessageEvents;
 import net.minecraft.CrashReport;
 import net.minecraft.ReportedException;
 import net.minecraft.network.Connection;
-import net.minecraft.network.PacketSendListener;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientboundChatPacket;
 import net.minecraft.network.protocol.game.ClientboundDisconnectPacket;
-import net.minecraft.network.protocol.game.ClientboundPlayerChatHeaderPacket;
-import net.minecraft.network.protocol.game.ClientboundPlayerChatPacket;
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoPacket;
-import net.minecraft.network.protocol.game.ClientboundSystemChatPacket;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
@@ -51,10 +45,10 @@ public class EventHandler {
                                 throw new ReportedException(CrashReport.forThrowable(e, "Ticking memory connection"));
                             }
                             LOGGER.warn("Failed to handle packet for {}", connection.getRemoteAddress(), e);
-                            Component component = Component.literal("Internal server error");
-                            connection.send(new ClientboundDisconnectPacket(component), PacketSendListener.thenRun(() -> {
+                            Component component = Component.nullToEmpty("Internal server error");
+                            connection.send(new ClientboundDisconnectPacket(component), future -> {
                                 connection.disconnect(component);
-                            }));
+                            });
                             connection.setReadOnly();
                         }
                     } else {
@@ -64,25 +58,20 @@ public class EventHandler {
                 }
             }
         });
-        Events.BROADCAST_CHAT_EVENT.register((message, network) -> {
+        Events.BROADCAST_CHAT_EVENT.register((message, type, uuid) -> {
             //byte[] bytes = message.signedBody().hash().asBytes();
             for (ChatConnection connection : CommonPlatform.connections) {
                 //connection.send(new ClientboundPlayerChatHeaderPacket(message.signedHeader(), message.headerSignature(), bytes));
                 new Timer().schedule(new TimerTask() {
                     @Override
                     public void run() {
-                        connection.send(new ClientboundPlayerChatPacket(message, network));
+                        connection.send(new ClientboundChatPacket(message, type, uuid));
                     }
                 }, 1L);
             }
         });
-        ServerMessageEvents.GAME_MESSAGE.register((server1, message, overlay) -> {
-            for (ChatConnection connection : CommonPlatform.connections) {
-                connection.send(new ClientboundSystemChatPacket(message, overlay));
-            }
-        });
         Events.PLAYER_INFO_EVENT.register(packet -> {
-            if (packet.getAction() != ClientboundPlayerInfoPacket.Action.REMOVE_PLAYER) {
+            /*if (packet.getAction() != ClientboundPlayerInfoPacket.Action.REMOVE_PLAYER) {
                 for (ClientboundPlayerInfoPacket.PlayerUpdate entry : packet.getEntries()) {
                     GameProfile profile = entry.getProfile();
                     if (profile.getName() != null) {
@@ -96,7 +85,7 @@ public class EventHandler {
             }
             for (ChatConnection connection : CommonPlatform.connections) {
                 connection.send(packet);
-            }
+            }*/
         });
         Events.PLAYER_JOINED.register((packet, player) -> {
             ClientboundPlayerInfoAccessor accessor = (ClientboundPlayerInfoAccessor) packet;
@@ -106,13 +95,6 @@ public class EventHandler {
             }
             accessor.setEntries(playerUpdates);
             player.connection.send((Packet<?>) accessor);
-        });
-        // I'm not actually sure if we need to send headers... testing with only two players
-        // leads me to believe we don't
-        Events.CHAT_HEADER_EVENT.register((bytes, header, signature) -> {
-            for (ChatConnection connection : CommonPlatform.connections) {
-                connection.send(new ClientboundPlayerChatHeaderPacket(header, signature, bytes));
-            }
         });
     }
 
@@ -130,29 +112,19 @@ public class EventHandler {
                 tick++;
             }
         });
-        ServerMessageEvents.GAME_MESSAGE.register((server1, message, overlay) -> {
-            connection.send(new HostBoundSystemChatPacket(message, overlay));
-        });
 
-        Events.BROADCAST_CHAT_EVENT.register((message, network) -> {
-            byte[] bytes = message.signedBody().hash().asBytes();
-            connection.send(new HostboundPlayerChatHeaderPacket(message.signedHeader(), message.headerSignature(), bytes));
+        Events.BROADCAST_CHAT_EVENT.register((message, type, uuid) -> {
             new Timer().schedule(new TimerTask() {
                 @Override
                 public void run() {
-                    connection.send(new HostBoundPlayerChatPacket(message, network));
+                    connection.send(new HostBoundPlayerChatPacket(message, type, uuid));
                 }
             }, 1L);
         });
 
         Events.PLAYER_INFO_EVENT.register(packet -> {
-            HostboundPlayerInfoPacket hostboundPlayerInfoPacket = new HostboundPlayerInfoPacket(packet.getAction(), packet.getEntries());
-            connection.send(hostboundPlayerInfoPacket);
-        });
-
-        // leave the header event here just in case.
-        Events.CHAT_HEADER_EVENT.register((bytes, header, signature) -> {
-
+            //HostboundPlayerInfoPacket hostboundPlayerInfoPacket = new HostboundPlayerInfoPacket(packet.getAction(), packet.getEntries());
+            //connection.send(hostboundPlayerInfoPacket);
         });
 
     }

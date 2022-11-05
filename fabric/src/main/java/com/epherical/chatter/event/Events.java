@@ -3,22 +3,16 @@ package com.epherical.chatter.event;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
 import net.minecraft.network.chat.ChatType;
-import net.minecraft.network.chat.MessageSignature;
-import net.minecraft.network.chat.PlayerChatMessage;
-import net.minecraft.network.chat.SignedMessageHeader;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoPacket;
 import net.minecraft.server.level.ServerPlayer;
+
+import java.util.UUID;
 
 /**
  * A collection of poorly named events.
  */
 public class Events {
-
-    public static final Event<ChatHeader> CHAT_HEADER_EVENT = EventFactory.createArrayBacked(ChatHeader.class, calls -> (bytes, header, signature) -> {
-        for (ChatHeader call : calls) {
-            call.onBroadcastHeader(bytes, header, signature);
-        }
-    });
 
     public static final Event<PlayerInfo> PLAYER_INFO_EVENT = EventFactory.createArrayBacked(PlayerInfo.class, calls -> packet -> {
         for (PlayerInfo call : calls) {
@@ -32,17 +26,12 @@ public class Events {
         }
     });
 
-    public static final Event<BroadcastChat> BROADCAST_CHAT_EVENT = EventFactory.createArrayBacked(BroadcastChat.class, calls -> (message, network) -> {
+    public static final Event<BroadcastChat> BROADCAST_CHAT_EVENT = EventFactory.createArrayBacked(BroadcastChat.class, calls -> (message, type, uuid) -> {
         for (BroadcastChat call : calls) {
-            call.onBroadcast(message, network);
+            call.onBroadcast(message, type, uuid);
         }
     });
 
-
-    @FunctionalInterface
-    public interface ChatHeader {
-        void onBroadcastHeader(byte[] bytes, SignedMessageHeader header, MessageSignature signature);
-    }
 
     @FunctionalInterface
     public interface PlayerInfo {
@@ -56,6 +45,6 @@ public class Events {
 
     @FunctionalInterface
     public interface BroadcastChat {
-        void onBroadcast(PlayerChatMessage message, ChatType.BoundNetwork network);
+        void onBroadcast(Component message, ChatType type, UUID fromUUID);
     }
 }
